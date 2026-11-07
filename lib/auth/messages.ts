@@ -1,0 +1,37 @@
+const messages: Record<string, string> = {
+  invalid: "Check the details and try again.",
+  sign_in: "We could not sign you in. Check your email and password.",
+  sign_up: "We could not create your account. Check the details and try again.",
+  domain: "That email address is not approved for the selected college.",
+  setup: "LOOPEC is not connected to its authentication service yet.",
+  session: "Your session has expired. Sign in again to continue.",
+  expired: "That confirmation link is invalid or has expired. Request a new one.",
+  upload: "We could not save the selected file or photo. Check it and try again.",
+  already_pending: "Your verification is already under review.",
+  verification_review: "We could not complete that review. Refresh the queue and try again.",
+  moderation: "We could not save that listing decision. Refresh the queue and try again.",
+  size: "Each product photo must be 4 MB or less.",
+  type: "Upload product photos in JPG, PNG or WebP format.",
+  save: "We could not save that listing. Check the required fields and try again.",
+  too_many_images: "A listing can have up to 20 photos.",
+  image_required: "Add at least one photo before you submit the listing for review.",
+  image_remove: "We could not remove that photo. Try again.",
+  submit: "We could not submit the listing for review. Try again.",
+  unavailable: "That listing can no longer be changed from this account.",
+  delete: "We could not delete that listing. Try again.",
+  withdraw: "We could not remove this live listing. Check whether it has an open order and try again.",
+  checkout: "Checkout could not be completed. Review your cart, stock and pickup point, then try again.",
+  transition: "That order could not be updated. Its status may have changed; refresh and review it.",
+  payment_reference: "Enter a valid payment reference after the seller accepts the order.",
+  payment: "That payment reference could not be recorded. Check the details and try again.",
+  payment_review: "We could not update the payment review. Refresh the queue and try again.",
+  member_review: "We could not update member access. Refresh the page and try again.",
+  review: "We could not save that review. Confirm the order is complete and try again.",
+  report_review: "We could not update that report. Refresh the queue and try again.",
+  settings: "We could not save that platform setting. Check the value and try again.",
+  category: "We could not save that category. Check the name and slug for duplicates.",
+};
+
+export function authMessage(code?: string) {
+  return code ? messages[code] ?? messages.invalid : null;
+}

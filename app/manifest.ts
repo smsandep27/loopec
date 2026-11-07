@@ -1,0 +1,18 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    id: "/",
+    name: "LOOPEC — Campus Marketplace",
+    short_name: "LOOPEC",
+    description: "A private marketplace made for your college community.",
+    start_url: "/",
+    scope: "/",
+    display: "standalone",
+    background_color: "#f7f6f4",
+    theme_color: "#f7f6f4",
+    icons: [
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+    ],
+  };
+}
