@@ -13,14 +13,16 @@ export default async function SignUpPage({ searchParams }: PageProps<"/auth/sign
   const { error } = await searchParams;
   const errorCode = Array.isArray(error) ? error[0] : error;
   let colleges: { id: string; name: string; email_domains: string[] }[] = [];
+  let collegeLoadError = false;
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
-    const { data } = await supabase
+    const { data, error: loadError } = await supabase
       .from("colleges")
       .select("id, name, email_domains")
       .eq("is_active", true)
       .order("name");
-    colleges = (data ?? []) as typeof colleges;
+    collegeLoadError = Boolean(loadError);
+    if (!loadError) colleges = (data ?? []) as typeof colleges;
   }
 
   return (
@@ -34,6 +36,8 @@ export default async function SignUpPage({ searchParams }: PageProps<"/auth/sign
         {authMessage(errorCode) ? <FormNotice>{authMessage(errorCode)}</FormNotice> : null}
         {!isSupabaseConfigured() ? (
           <FormNotice>Account setup is not connected yet. <Link className="font-semibold underline" href="/setup">View setup details</Link>.</FormNotice>
+        ) : collegeLoadError ? (
+          <FormNotice>We could not load the college list from Supabase. Confirm the migration is applied and the public schema is enabled in the Data API, then try again. <Link className="font-semibold underline" href="/setup">View setup details</Link>.</FormNotice>
         ) : colleges.length === 0 ? (
           <div className="space-y-4 rounded-2xl bg-violet-50 p-5 text-sm leading-6 text-violet-950">
             <p>Your pilot college is not configured yet. Registration opens after an administrator adds the approved college email domains.</p>

@@ -12,8 +12,9 @@ export default function SetupPage() {
       {isSupabaseConfigured() ? (
         <div className="space-y-4">
           <p className="rounded-2xl bg-violet-50 p-4 text-sm leading-6 text-violet-950">
-            Supabase is configured. Add the pilot college and its approved email domains to the database, then return to registration.
+            Supabase is configured. Apply the initial migration, then run <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">supabase/seeds/nit_calicut.sql</code> in the Supabase SQL Editor. That adds National Institute of Technology Calicut with its institutional <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">nitc.ac.in</code> email domain.
           </p>
+          <p className="text-xs leading-5 text-[#7b7482]">The NITC pilot seed is configured for student, faculty, and staff addresses ending in <code>nitc.ac.in</code>.</p>
           <Link className="inline-flex min-h-12 items-center justify-center rounded-full bg-violet-950 px-5 text-sm font-semibold text-white" href="/auth/sign-up">
             Continue to registration
           </Link>

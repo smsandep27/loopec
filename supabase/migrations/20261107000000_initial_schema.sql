@@ -1,4 +1,4 @@
--- LOOPEC foundation schema. Apply with Supabase CLI after creating the pilot college.
+-- LOOPEC foundation schema. Apply to the selected pilot Supabase project.
 -- Private verification and product media are stored in private Storage buckets below.
 
 create type public.community_role as enum (
