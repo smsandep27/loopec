@@ -43,6 +43,22 @@ export async function getCurrentMember() {
 }
 
 export async function requireApprovedMember() {
+  if (process.env.NODE_ENV === "development" && process.env.LOOPEC_DEV_BYPASS_AUTH === "true") {
+    const supabase = await createClient();
+    const userId = "00000000-0000-4000-8000-000000000001";
+    const profile: MemberProfile = {
+      id: userId,
+      full_name: "Developer Preview",
+      handle: "developer-preview",
+      phone: null,
+      bio: null,
+      college_id: null,
+      role: "student",
+      verification_status: "approved",
+      suspended_at: null,
+    };
+    return { supabase, userId, profile };
+  }
   const member = await getCurrentMember();
   if (!member.userId || !member.profile) {
     redirect("/auth/sign-in?next=%2Fmarketplace&error=session");

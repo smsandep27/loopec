@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -63,6 +64,7 @@ export async function signUp(formData: FormData) {
     },
   });
   if (error) redirect("/auth/sign-up?error=sign_up");
+  (await cookies()).set("loopec_pending_email", email, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/auth/check-email", maxAge: 15 * 60 });
   redirect("/auth/check-email");
 }
 
@@ -78,7 +80,13 @@ export async function signIn(formData: FormData) {
     email: email.data,
     password: password.data,
   });
-  if (error) redirect("/auth/sign-in?error=sign_in");
+  if (error) {
+    if (error.code === "email_not_confirmed" || error.message.toLowerCase().includes("email not confirmed")) {
+      (await cookies()).set("loopec_pending_email", email.data, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/auth/check-email", maxAge: 15 * 60 });
+      redirect("/auth/check-email?error=unconfirmed");
+    }
+    redirect("/auth/sign-in?error=sign_in");
+  }
 
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
@@ -124,13 +132,14 @@ export async function resendConfirmation(formData: FormData) {
   if (!parsed.success) redirect("/auth/check-email?error=invalid");
 
   const supabase = await createClient();
-  await supabase.auth.resend({
+  const { error } = await supabase.auth.resend({
     type: "signup",
     email: parsed.data,
     options: {
       emailRedirectTo: `${siteOrigin()}/auth/callback?next=%2Fverification`,
     },
   });
+  if (error) redirect("/auth/check-email?error=email_send");
   redirect("/auth/check-email?resent=1");
 }
 

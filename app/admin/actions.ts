@@ -195,3 +195,40 @@ export async function toggleCategory(formData: FormData) {
   const { error } = await member.supabase.from("categories").update({ is_active: parsed.data.active === "true" }).eq("id", parsed.data.categoryId);
   redirect(error ? "/admin/settings?error=category" : "/admin/settings?category_saved=1");
 }
+
+export async function savePickupLocation(formData: FormData) {
+  const parsed = z.object({
+    locationId: z.union([z.literal(""), z.uuid()]),
+    collegeId: z.uuid(),
+    name: z.string().trim().min(2).max(120),
+    address: z.string().trim().min(3).max(300),
+    instructions: z.string().trim().max(1200),
+    sortOrder: z.coerce.number().int().min(-32768).max(32767),
+    active: z.enum(["true", "false"]),
+  }).safeParse({
+    locationId: formData.get("location_id") ?? "",
+    collegeId: formData.get("college_id"),
+    name: formData.get("name"),
+    address: formData.get("address"),
+    instructions: formData.get("instructions") ?? "",
+    sortOrder: formData.get("sort_order"),
+    active: formData.get("is_active"),
+  });
+  if (!parsed.success) redirect("/admin/pickup?error=pickup");
+  const member = await getCurrentMember();
+  if (!member.userId || !member.profile || !["college_admin", "super_admin"].includes(member.profile.role) || member.profile.suspended_at) {
+    redirect("/auth/sign-in?error=session");
+  }
+  const collegeId = member.profile.role === "super_admin" ? parsed.data.collegeId : member.profile.college_id;
+  if (!collegeId) redirect("/admin/pickup?error=pickup");
+  const { error } = await member.supabase.rpc("manage_pickup_location", {
+    p_location_id: parsed.data.locationId || null,
+    p_college_id: collegeId,
+    p_name: parsed.data.name,
+    p_address: parsed.data.address,
+    p_instructions: parsed.data.instructions,
+    p_sort_order: parsed.data.sortOrder,
+    p_is_active: parsed.data.active === "true",
+  });
+  redirect(error ? "/admin/pickup?error=pickup" : "/admin/pickup?saved=1");
+}

@@ -2,6 +2,8 @@ const messages: Record<string, string> = {
   invalid: "Check the details and try again.",
   sign_in: "We could not sign you in. Check your email and password.",
   sign_up: "We could not create your account. Check the details and try again.",
+  email_send: "We couldn't send a code. Check the email address, wait before retrying, or contact support if this continues.",
+  unconfirmed: "Your email isn't confirmed yet. Enter the code sent to your college inbox below, then sign in again.",
   domain: "That email address is not approved for the selected college.",
   setup: "LOOPEC is not connected to its authentication service yet.",
   session: "Your session has expired. Sign in again to continue.",
@@ -30,6 +32,7 @@ const messages: Record<string, string> = {
   report_review: "We could not update that report. Refresh the queue and try again.",
   settings: "We could not save that platform setting. Check the value and try again.",
   category: "We could not save that category. Check the name and slug for duplicates.",
+  pickup: "We could not save that pickup point. Check its fields and confirm your admin access.",
 };
 
 export function authMessage(code?: string) {

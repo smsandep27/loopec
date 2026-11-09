@@ -33,12 +33,14 @@ export function ProductCard({
   returnTo = "/marketplace",
   showSeller = true,
   currentUserId,
+  previewMode = false,
 }: {
   product: MarketplaceProduct;
   saved: boolean;
   returnTo?: string;
   showSeller?: boolean;
   currentUserId: string;
+  previewMode?: boolean;
 }) {
   return (
     <article className="group overflow-hidden rounded-[22px] border border-[#e8e5e2] bg-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_45px_-35px_rgba(43,29,68,.5)]">
@@ -55,9 +57,9 @@ export function ProductCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-[10px] font-bold uppercase tracking-[.11em] text-violet-700">{product.categoryName}</p>
-            <Link href={`/marketplace/${product.id}`} className="mt-1.5 line-clamp-2 block min-h-[44px] text-[15px] font-semibold leading-[1.45] text-[#302b37] transition hover:text-violet-800">{product.name}</Link>
+            {previewMode ? <span className="mt-1.5 line-clamp-2 block min-h-[44px] text-[15px] font-semibold leading-[1.45] text-[#302b37]">{product.name}</span> : <Link href={`/marketplace/${product.id}`} className="mt-1.5 line-clamp-2 block min-h-[44px] text-[15px] font-semibold leading-[1.45] text-[#302b37] transition hover:text-violet-800">{product.name}</Link>}
           </div>
-          {product.seller_id !== currentUserId ? (
+          {product.seller_id !== currentUserId && !previewMode ? (
             <form action={toggleWishlist}>
               <input type="hidden" name="product_id" value={product.id} />
               <input type="hidden" name="return_to" value={returnTo} />
@@ -70,7 +72,7 @@ export function ProductCard({
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-[#f0edf0] pt-3.5">
           <div>
             <p className="text-lg font-bold tracking-tight text-[#2b2632]">{currency.format(Number(product.price))}</p>
-            {showSeller ? <Link href={`/members/${product.sellerHandle}`} className="mt-1 block max-w-[160px] truncate text-[11px] text-[#817a87] hover:text-violet-800">{product.sellerName}</Link> : null}
+            {showSeller ? previewMode ? <span className="mt-1 block max-w-[160px] truncate text-[11px] text-[#817a87]">{product.sellerName}</span> : <Link href={`/members/${product.sellerHandle}`} className="mt-1 block max-w-[160px] truncate text-[11px] text-[#817a87] hover:text-violet-800">{product.sellerName}</Link> : null}
           </div>
           <span className="text-[10px] text-[#928b96]">{product.quantity} available</span>
         </div>

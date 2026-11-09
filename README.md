@@ -4,7 +4,7 @@ LOOPEC is a college-exclusive marketplace from CiGaRa Technologies, part of CiGa
 
 ## Project status
 
-The local application now includes the foundation and code for member authentication and verification, listing creation and moderation, search, cart and checkout, manual UPI reference review, buyer/seller orders and pickup confirmation, messaging, notifications, reviews, reports, seller dashboards, and admin queues/settings. The PostgreSQL migration defines the schema, RLS, storage policies, and guarded workflow RPCs. The application has not been connected to a pilot Supabase project, so schema execution, live authorization checks, end-to-end transactions, and deployment remain outstanding. It is not ready for a live pilot yet.
+The local application includes member authentication and verification, listing creation and moderation, search, cart and checkout, manual UPI reference review, buyer/seller orders and pickup confirmation, messaging, notifications, reviews, reports, seller dashboards, and admin queues/settings. The initial schema and NIT Calicut college row have been applied to the pilot project, and the public college lookup has been confirmed. The additional audited pickup-management migration and real role-by-role authorization and end-to-end workflow checks are still outstanding. It is not ready for a live pilot yet.
 
 ## Local setup
 
@@ -18,14 +18,18 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). The landing page, setup guidance, and offline fallback work without Supabase credentials. Set the Supabase URL, publishable key, and canonical site URL to enable accounts and verification.
 
+For a local UI walkthrough before creating a member, `.env.local` may set `LOOPEC_DEV_BYPASS_AUTH=true`. This is honored only by `next dev`, shows clearly marked sample listings, and does not grant access to production or allow account actions. Remove the flag when you want to test real authentication.
+
 ## Supabase setup
 
 1. Create the pilot Supabase project and add its URL, publishable key, and canonical site origin to `.env.local`.
-2. Apply `supabase/migrations/20261107000000_initial_schema.sql` only to that pilot project.
+2. Apply `supabase/migrations/20261107000000_initial_schema.sql` only to that pilot project. If you already applied it, do not rerun it.
 3. Enable the `public` schema in the project's Data API settings if using the PostgREST client. New tables are not automatically API-exposed for projects created after October 30, 2026; SQL RLS and grants still govern access.
 4. Run `supabase/seeds/nit_calicut.sql` in the Supabase SQL Editor. It adds National Institute of Technology Calicut with the confirmed `nitc.ac.in` domain for students, faculty, and staff.
-5. Create the first college admin by registering an account, then promote that profile from the Supabase SQL Editor using an owner-only account. Set its `college_id`, `role = 'college_admin'`, and `verification_status = 'approved'`. Create a separate super-admin only when global settings management is needed. The profile guard prevents these fields from being changed through the public API.
-6. Configure Supabase Auth email delivery and redirect URLs, including `/auth/callback`, before enabling registration.
+5. Apply `supabase/migrations/20261109000000_admin_pickup_locations.sql` after the initial schema. It adds an admin-only audited function for pickup point management.
+6. Create the first college admin by registering an account, then promote that profile from the Supabase SQL Editor using an owner-only account. Set its `college_id`, `role = 'college_admin'`, and `verification_status = 'approved'`. Create a separate super-admin only when global settings management is needed. The profile guard prevents these fields from being changed through the public API.
+7. Sign in as the college admin and add only campus-approved meeting points at `/admin/pickup`.
+8. Configure Supabase Auth email delivery and redirect URLs, including `/auth/callback`, before enabling registration.
 
 The migration creates private `verification-documents` and `product-images` buckets, limits MIME types and file size, and adds RLS policies. Verification files are stored as object paths and are never placed in a public bucket. The publishable key is safe to expose only because database and Storage access is restricted by RLS. Never add a Supabase secret/service-role key to a `NEXT_PUBLIC_` variable or browser code.
 
@@ -51,8 +55,7 @@ npm run build
 
 ## Current pilot gaps
 
-- Apply the migration to a designated Supabase project and run the access matrix and two-member pilot path in `docs/BUILD_CHECKLIST.md`.
-- Run the NIT Calicut seed in Supabase and seed approved pickup locations. Admin CRUD for pickup locations is not included yet.
+- Apply the pickup-management migration, seed approved NITC pickup locations through the admin page, and run the access matrix and two-member pilot path in `docs/BUILD_CHECKLIST.md`.
 - The About page is ready; Terms and Privacy pages are pilot drafts and need college/legal review, an operator contact, and retention details before registration opens.
 - Configure production email delivery, redirect allowlists, hosting/domain, backups, monitoring and rate limits.
 - Complete accessibility, mobile/PWA, performance and security reviews. Automated integration/RLS tests are not included yet.

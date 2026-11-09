@@ -20,6 +20,18 @@ type ProductRow = {
   published_at: string | null;
 };
 
+const previewCategories: Category[] = [
+  { id: "demo-books", name: "Books & study materials", slug: "books-study-materials" },
+  { id: "demo-electronics", name: "Electronics", slug: "electronics" },
+  { id: "demo-accessories", name: "Accessories", slug: "accessories" },
+];
+
+const previewProducts: ProductRow[] = [
+  { id: "demo-calculator", seller_id: "demo-seller-1", category_id: "demo-electronics", name: "Scientific calculator", description: "A reliable calculator for coursework and exams.", price: 750, item_condition: "good", quantity: 1, is_featured: true, published_at: "2026-11-08T09:00:00.000Z" },
+  { id: "demo-textbooks", seller_id: "demo-seller-2", category_id: "demo-books", name: "Engineering mathematics textbooks", description: "Two well-kept books, ready for another semester.", price: 450, item_condition: "good", quantity: 2, is_featured: false, published_at: "2026-11-07T09:00:00.000Z" },
+  { id: "demo-desk-lamp", seller_id: "demo-seller-3", category_id: "demo-accessories", name: "LED study lamp", description: "Compact desk lamp with adjustable brightness.", price: 300, item_condition: "like_new", quantity: 1, is_featured: false, published_at: "2026-11-06T09:00:00.000Z" },
+];
+
 function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -38,14 +50,15 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
   const maxPrice = parsePrice(first(params.max));
   const requestedSort = first(params.sort);
   const sort = requestedSort === "price_low" || requestedSort === "price_high" ? requestedSort : "recent";
+  const previewMode = process.env.NODE_ENV === "development" && process.env.LOOPEC_DEV_BYPASS_AUTH === "true";
   const { supabase, userId, profile } = await requireApprovedMember();
 
   const [{ data: categoriesData }, { data: pickupData }, { count: unreadCount }] = await Promise.all([
-    supabase.from("categories").select("id, name, slug").eq("is_active", true).order("sort_order"),
-    profile.college_id
+    previewMode ? Promise.resolve({ data: previewCategories }) : supabase.from("categories").select("id, name, slug").eq("is_active", true).order("sort_order"),
+    previewMode ? Promise.resolve({ data: [{ name: "NIT Calicut" }] }) : profile.college_id
       ? supabase.from("pickup_locations").select("id, name").eq("college_id", profile.college_id).eq("is_active", true).order("sort_order").limit(1)
       : Promise.resolve({ data: [] }),
-    supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null),
+    previewMode ? Promise.resolve({ count: 0 }) : supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null),
   ]);
   const categories = (categoriesData ?? []) as Category[];
 
@@ -65,14 +78,16 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
   else if (sort === "price_high") query = query.order("price", { ascending: false });
   else query = query.order("published_at", { ascending: false, nullsFirst: false });
 
-  const { data: productData, error: productsError } = await query;
+  const { data: productData, error: productsError } = previewMode
+    ? { data: previewProducts, error: null }
+    : await query;
   const products = (productData ?? []) as ProductRow[];
   const productIds = products.map((product) => product.id);
   const sellerIds = [...new Set(products.map((product) => product.seller_id))];
   const [{ data: imageData }, { data: sellersData }, { data: savedData }] = await Promise.all([
-    productIds.length ? supabase.from("product_images").select("product_id, storage_path, sort_order").in("product_id", productIds).order("sort_order") : Promise.resolve({ data: [] }),
-    sellerIds.length ? supabase.from("profiles").select("id, full_name, handle").in("id", sellerIds) : Promise.resolve({ data: [] }),
-    productIds.length ? supabase.from("wishlists").select("product_id").eq("user_id", userId).in("product_id", productIds) : Promise.resolve({ data: [] }),
+    previewMode || !productIds.length ? Promise.resolve({ data: [] }) : supabase.from("product_images").select("product_id, storage_path, sort_order").in("product_id", productIds).order("sort_order"),
+    previewMode || !sellerIds.length ? Promise.resolve({ data: [] }) : supabase.from("profiles").select("id, full_name, handle").in("id", sellerIds),
+    previewMode || !productIds.length ? Promise.resolve({ data: [] }) : supabase.from("wishlists").select("product_id").eq("user_id", userId).in("product_id", productIds),
   ]);
   const images = (imageData ?? []) as { product_id: string; storage_path: string; sort_order: number }[];
   const sellers = (sellersData ?? []) as { id: string; full_name: string; handle: string }[];
@@ -105,6 +120,7 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
 
   return (
     <main className="min-h-screen bg-[#f7f6f4]">
+      {previewMode ? <div className="bg-amber-100 px-4 py-2 text-center text-xs font-semibold text-amber-950">Developer preview · local only · account actions need real sign-in</div> : null}
       <header className="border-b border-[#e8e5e2] bg-white/85">
         <div className="mx-auto flex min-h-[74px] max-w-7xl items-center justify-between gap-3 px-5 sm:px-8">
           <Link href="/marketplace" className="text-sm font-extrabold tracking-[.14em] text-[#302546]">LOOPEC <span className="ml-2 font-normal tracking-normal text-[#8b8590]">Marketplace</span></Link>
@@ -149,7 +165,7 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
           <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">Marketplace data is not available. Check that the pilot schema and public Data API access are configured.</div>
         ) : cards.length ? (
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {cards.map((product) => <ProductCard key={product.id} product={product} saved={saved.has(product.id)} returnTo="/marketplace" currentUserId={userId} />)}
+            {cards.map((product) => <ProductCard key={product.id} product={product} saved={saved.has(product.id)} returnTo="/marketplace" currentUserId={userId} previewMode={previewMode} />)}
           </div>
         ) : (
           <div className="mt-5 rounded-[28px] border border-dashed border-[#d9d2e0] bg-white px-6 py-16 text-center">

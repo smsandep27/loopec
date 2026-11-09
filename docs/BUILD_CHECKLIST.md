@@ -12,7 +12,8 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [x] Add `.env.example`, project setup instructions, and a maintainable phase checklist.
 - [x] Add About, Terms, and Privacy pages; keep policy drafts visibly marked for pilot operator review.
 - [x] Draft the normalized PostgreSQL migration with core tables, indexes, constraints, RLS, private storage buckets, and guarded verification, moderation, and order-state RPCs.
-- [ ] Apply the migration to the intended Supabase project and verify policies against real `anon`, approved-member, seller, college-admin, and super-admin sessions.
+- [x] Apply the initial schema and NIT Calicut seed; confirm the expected 20 tables, seven enum types, and public NITC college lookup.
+- [ ] Verify policies against real `anon`, approved-member, seller, college-admin, and super-admin sessions.
 - [ ] Add generated database types after the schema is applied to the pilot Supabase project.
 
 ## Phase 2 — Authentication and verification
@@ -37,7 +38,9 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 
 - [x] Implement server-side checkout that re-reads prices and stock, groups items by seller, locks inventory, and creates order snapshots transactionally.
 - [x] Add buyer and seller order views, cancellation rules, order-state transitions, and two-party pickup confirmation.
-- [ ] Seed the approved pickup points and build admin management for them.
+- [x] Build audited admin management for college pickup points with college-scoped authorization.
+- [ ] Add the campus-approved NITC pickup points after the college names the approved meeting locations.
+- [ ] Apply `20261109000000_admin_pickup_locations.sql` to the pilot project after the initial schema.
 - [x] Implement manual UPI reference submission and admin review; no client action can mark an order paid.
 - [x] Add checkout idempotency, commission snapshots, manual-payment review records, and audit records.
 - [ ] Test concurrent stock reservation, duplicate checkout requests, cancellation/restock, and payment review against the pilot database.
@@ -54,6 +57,7 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 
 ## Phase 6 — Production readiness
 
+- [x] Run local TypeScript, lint, and optimized production-build checks.
 - [ ] Add automated tests for auth, verification, RLS, listing, checkout, order transitions, pickup, admin actions, and payment webhook idempotency.
 - [ ] Run dependency and secret scans; review every server action, upload path, RLS policy, and privileged key boundary.
 - [ ] Verify mobile and desktop layouts, keyboard navigation, focus states, reduced motion, and screen-reader labels.

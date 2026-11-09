@@ -85,6 +85,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           <Link href="/admin/listings" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Listing moderation</Link>
           <Link href="/admin/orders" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Order review</Link>
           <Link href="/admin/members" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Member access</Link>
+          <Link href="/admin/pickup" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Pickup points</Link>
           <Link href="/admin/reports" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Reports</Link>
           {member.profile.role === "super_admin" ? <Link href="/admin/settings" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Platform settings</Link> : null}
           <span className="hidden text-sm text-[#756f7b] sm:block">{member.profile.full_name}</span>

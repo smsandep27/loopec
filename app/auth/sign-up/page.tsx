@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { AuthShell, FormNotice, inputClassName, labelClassName } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,9 @@ import { signUp } from "@/app/auth/actions";
 export const instant = false;
 
 export default async function SignUpPage({ searchParams }: PageProps<"/auth/sign-up">) {
+  if (process.env.NODE_ENV === "development" && process.env.LOOPEC_DEV_BYPASS_AUTH === "true") {
+    redirect("/marketplace");
+  }
   const { error } = await searchParams;
   const errorCode = Array.isArray(error) ? error[0] : error;
   let colleges: { id: string; name: string; email_domains: string[] }[] = [];
