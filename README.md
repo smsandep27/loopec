@@ -27,9 +27,10 @@ For a local UI walkthrough before creating a member, `.env.local` may set `LOOPE
 3. Enable the `public` schema in the project's Data API settings if using the PostgREST client. New tables are not automatically API-exposed for projects created after October 30, 2026; SQL RLS and grants still govern access.
 4. Run `supabase/seeds/nit_calicut.sql` in the Supabase SQL Editor. It adds National Institute of Technology Calicut with the confirmed `nitc.ac.in` domain for students, faculty, and staff.
 5. Apply `supabase/migrations/20261109000000_admin_pickup_locations.sql` after the initial schema. It adds an admin-only audited function for pickup point management.
-6. Create the first college admin by registering an account, then promote that profile from the Supabase SQL Editor using an owner-only account. Set its `college_id`, `role = 'college_admin'`, and `verification_status = 'approved'`. Create a separate super-admin only when global settings management is needed. The profile guard prevents these fields from being changed through the public API.
-7. Sign in as the college admin and add only campus-approved meeting points at `/admin/pickup`.
-8. Configure Supabase Auth email delivery and redirect URLs, including `/auth/callback`, before enabling registration.
+6. Apply `supabase/migrations/20261109000001_realtime_messages.sql` to add private conversation messages to the Realtime publication.
+7. Create the first college admin by registering an account, then promote that profile from the Supabase SQL Editor using an owner-only account. Set its `college_id`, `role = 'college_admin'`, and `verification_status = 'approved'`. Create a separate super-admin only when global settings management is needed. The profile guard prevents these fields from being changed through the public API.
+8. Sign in as the college admin and add only campus-approved meeting points at `/admin/pickup`.
+9. Configure Supabase Auth email delivery and redirect URLs, including `/auth/callback`, before enabling registration.
 
 The migration creates private `verification-documents` and `product-images` buckets, limits MIME types and file size, and adds RLS policies. Verification files are stored as object paths and are never placed in a public bucket. The publishable key is safe to expose only because database and Storage access is restricted by RLS. Never add a Supabase secret/service-role key to a `NEXT_PUBLIC_` variable or browser code.
 

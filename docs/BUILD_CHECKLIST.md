@@ -49,7 +49,8 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 ## Phase 5 — Dashboards and communication
 
 - [x] Build buyer/seller dashboard metrics, listing management, incoming orders, and sales summaries from database queries.
-- [x] Add buyer-seller conversations, participant-scoped message access, and unread state. Supabase Realtime is not enabled.
+- [x] Add buyer-seller conversations, participant-scoped message access, unread state, and client-side Realtime subscriptions.
+- [ ] Apply `20261109000001_realtime_messages.sql` and verify message delivery remains participant-scoped.
 - [x] Add a notification centre and order/listing/verification/message events.
 - [x] Add completed-order reviews and listing reports with moderation workflows.
 - [x] Build admin user verification, suspension, product moderation, order overview, transaction activity, reports, overview metrics, and super-admin settings.
