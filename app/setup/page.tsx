@@ -16,7 +16,7 @@ export default function SetupPage() {
           </p>
           <ol className="list-decimal space-y-2 pl-5 text-xs leading-5 text-[#625b6b]">
             <li>Run <code>supabase/seeds/nit_calicut.sql</code> to add NIT Calicut and its <code>nitc.ac.in</code> email domain. This seed can be safely rerun.</li>
-            <li>Apply the follow-up migrations in order: <code>20261109000000_admin_pickup_locations.sql</code>, <code>20261109000001_realtime_messages.sql</code>, then <code>20261109000002_action_rate_limits.sql</code>.</li>
+            <li>Apply the follow-up migrations in order: <code>20261109000000_admin_pickup_locations.sql</code>, <code>20261109000001_realtime_messages.sql</code>, then <code>20261109000002_action_rate_limits.sql</code>. Skip any migration already applied; run each file only once.</li>
             <li>Configure Supabase Auth email delivery and the local callback URL before testing registration.</li>
           </ol>
           <p className="text-xs leading-5 text-[#7b7482]">NITC sign-in accepts confirmed student, faculty, and staff addresses ending in <code>nitc.ac.in</code>.</p>

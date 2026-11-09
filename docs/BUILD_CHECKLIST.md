@@ -8,6 +8,7 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [x] Establish a premium purple and neutral design system with reusable brand and button components.
 - [x] Build a responsive public landing page that describes the intended service without fake product listings.
 - [x] Add the web manifest, install metadata, service worker registration, and a minimal offline fallback. The service worker caches only the offline page and never caches private pages or user data.
+- [x] Provide 192px, 512px, maskable, and Apple touch PNG icons for PWA installation.
 - [x] Add Supabase browser and server client factories using the public publishable key and cookie-based SSR.
 - [x] Add `.env.example`, project setup instructions, and a maintainable phase checklist.
 - [x] Add About, Terms, and Privacy pages; keep policy drafts visibly marked for pilot operator review.
@@ -63,7 +64,7 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [ ] Add automated tests for auth, verification, RLS, listing, checkout, order transitions, pickup, admin actions, and payment webhook idempotency.
 - [ ] Run dependency and secret scans; review every server action, upload path, RLS policy, and privileged key boundary.
 - [ ] Verify mobile and desktop layouts, keyboard navigation, focus states, reduced motion, and screen-reader labels.
-- [ ] Verify PWA installability and offline behavior without caching authenticated or personal data.
+- [ ] Verify PWA installability and offline behavior without caching authenticated or personal data on supported desktop and mobile browsers.
 - [ ] Measure performance and correct Core Web Vitals issues; apply `20261109000002_action_rate_limits.sql` and verify limits in the pilot. Registration uses Supabase Auth's built-in throttles.
 - [ ] Configure Vercel production/preview environments, Supabase redirect URLs, backup/restore, monitoring, and error reporting.
 - [ ] Walk the end-to-end pilot acceptance path with two verified accounts and one college admin after the Supabase project is configured.
