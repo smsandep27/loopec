@@ -46,6 +46,12 @@ npm run typecheck
 npm run build
 ```
 
+With `npm run dev` running in another terminal, `npm run test:smoke` checks the landing page, developer marketplace preview, sign-in page, manifest, service worker, offline fallback, and PWA image assets.
+
+## Database tests
+
+Install the Supabase CLI and a Docker-compatible runtime, then run `supabase start` followed by `supabase test db` from the repository root. The checked-in `supabase/config.toml` applies the migrations and NITC seed to a local Supabase stack; these commands do not modify the hosted pilot project. The pgTAP suite covers schema privileges, RLS, NITC verification approval, listing moderation, checkout idempotency, payment review, order transitions, pickup, inventory restoration, and audit entries. The suite still needs to be run locally and against the hosted pilot before release.
+
 ## Architecture
 
 - `app/`: App Router pages, metadata and global theme.
@@ -60,6 +66,6 @@ npm run build
 - Apply the pickup-management migration, seed approved NITC pickup locations through the admin page, and run the access matrix and two-member pilot path in `docs/BUILD_CHECKLIST.md`.
 - The About page is ready; Terms and Privacy pages are pilot drafts and need college/legal review, an operator contact, and retention details before registration opens.
 - Configure production email delivery, redirect allowlists, hosting/domain, backups, monitoring and apply the action rate-limit migration.
-- Complete accessibility, mobile/PWA, performance and security reviews. Automated integration/RLS tests are not included yet.
+- Run the included pgTAP suite locally and verify the remaining hosted-project RLS, access-matrix, email-delivery, storage and two-member acceptance workflows. Complete accessibility, mobile/PWA, performance and security reviews.
 
 Orders are modeled as one buyer and one seller per order. A multi-seller cart will be split into multiple orders. Payment confirmation is reserved for a trusted provider/server workflow; no browser success signal can set an order to paid.

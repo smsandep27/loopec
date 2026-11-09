@@ -62,7 +62,10 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 ## Phase 6 — Production readiness
 
 - [x] Run local TypeScript, lint, and optimized production-build checks.
-- [ ] Add automated tests for auth, verification, RLS, listing, checkout, order transitions, pickup, admin actions, and payment webhook idempotency.
+- [x] Add and run no-dependency local smoke tests for the landing page, developer marketplace, sign-in, PWA manifest/assets, service worker, and offline fallback.
+- [x] Add pgTAP coverage for verification approval, RLS, listing moderation, checkout idempotency, manual payment review, order/pickup transitions, inventory restoration, and audited pickup administration.
+- [ ] Run the database suite with Supabase CLI and Docker; verify concurrency and role behavior against the pilot database.
+- [ ] Verify Auth email delivery, signed Storage access, Realtime delivery, and any future payment-provider webhook idempotency.
 - [ ] Run dependency and secret scans; review every server action, upload path, RLS policy, and privileged key boundary.
 - [ ] Verify mobile and desktop layouts, keyboard navigation, focus states, reduced motion, and screen-reader labels.
 - [ ] Verify PWA installability and offline behavior without caching authenticated or personal data on supported desktop and mobile browsers.
