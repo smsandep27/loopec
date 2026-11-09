@@ -29,7 +29,7 @@ For a local UI walkthrough before creating a member, `.env.local` may set `LOOPE
 5. Apply `supabase/migrations/20261109000000_admin_pickup_locations.sql` after the initial schema. It adds an admin-only audited function for pickup point management.
 6. Apply `supabase/migrations/20261109000001_realtime_messages.sql` to add private conversation messages to the Realtime publication.
 7. Apply `supabase/migrations/20261109000002_action_rate_limits.sql` once to add database-enforced user limits for writes and private uploads; skip it if already applied. Supabase Auth applies its own registration and email throttles.
-8. Create the first college admin by registering an account, then promote that profile from the Supabase SQL Editor using an owner-only account. Set its `college_id`, `role = 'college_admin'`, and `verification_status = 'approved'`. Create a separate super-admin only when global settings management is needed. The profile guard prevents these fields from being changed through the public API.
+8. Register and confirm the first admin account, replace the email in `supabase/operations/promote_first_college_admin.sql`, then run that script once in the Supabase SQL Editor as the project owner. It checks the confirmed `nitc.ac.in` account, promotes it for NIT Calicut, and records the bootstrap in `audit_logs`. Create a separate super-admin only when global settings management is needed.
 9. Sign in as the college admin and add only campus-approved meeting points at `/admin/pickup`.
 10. Configure Supabase Auth email delivery and redirect URLs, including `/auth/callback`, before enabling registration.
 

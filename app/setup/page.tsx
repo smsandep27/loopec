@@ -17,7 +17,8 @@ export default function SetupPage() {
           <ol className="list-decimal space-y-2 pl-5 text-xs leading-5 text-[#625b6b]">
             <li>Run <code>supabase/seeds/nit_calicut.sql</code> to add NIT Calicut and its <code>nitc.ac.in</code> email domain. This seed can be safely rerun.</li>
             <li>Apply the follow-up migrations in order: <code>20261109000000_admin_pickup_locations.sql</code>, <code>20261109000001_realtime_messages.sql</code>, then <code>20261109000002_action_rate_limits.sql</code>. Skip any migration already applied; run each file only once.</li>
-            <li>Configure Supabase Auth email delivery and the local callback URL before testing registration.</li>
+            <li>Configure Supabase Auth email delivery and the local callback URL, then register and confirm the first admin account.</li>
+            <li>Set that account’s confirmed email in <code>supabase/operations/promote_first_college_admin.sql</code> and run it as the project owner to create the audited college-admin profile.</li>
           </ol>
           <p className="text-xs leading-5 text-[#7b7482]">NITC sign-in accepts confirmed student, faculty, and staff addresses ending in <code>nitc.ac.in</code>.</p>
           <Link className="inline-flex min-h-12 items-center justify-center rounded-full bg-violet-950 px-5 text-sm font-semibold text-white" href="/auth/sign-up">
