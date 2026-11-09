@@ -7,6 +7,7 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [x] Create a clean Next.js App Router project with TypeScript, Tailwind CSS, ESLint, and npm lockfile.
 - [x] Establish a premium purple and neutral design system with reusable brand and button components.
 - [x] Build a responsive public landing page that describes the intended service without fake product listings.
+- [x] Keep marketplace navigation reachable on narrow screens with a compact accessible menu.
 - [x] Add the web manifest, install metadata, service worker registration, and a minimal offline fallback. The service worker caches only the offline page and never caches private pages or user data.
 - [x] Provide 192px, 512px, maskable, and Apple touch PNG icons for PWA installation.
 - [x] Add Supabase browser and server client factories using the public publishable key and cookie-based SSR.

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, Menu as MenuIcon, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { ProductCard, type MarketplaceProduct } from "@/components/marketplace/product-card";
 import { requireApprovedMember } from "@/lib/auth/member";
 import { signOut } from "@/app/auth/actions";
@@ -123,17 +123,34 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
       {previewMode ? <div className="bg-amber-100 px-4 py-2 text-center text-xs font-semibold text-amber-950">Developer preview · local only · account actions need real sign-in</div> : null}
       <header className="border-b border-[#e8e5e2] bg-white/85">
         <div className="mx-auto flex min-h-[74px] max-w-7xl items-center justify-between gap-3 px-5 sm:px-8">
-          <Link href="/marketplace" className="text-sm font-extrabold tracking-[.14em] text-[#302546]">LOOPEC <span className="ml-2 font-normal tracking-normal text-[#8b8590]">Marketplace</span></Link>
+          <Link href="/marketplace" className="text-sm font-extrabold tracking-[.14em] text-[#302546]">LOOPEC <span className="ml-2 hidden font-normal tracking-normal text-[#8b8590] sm:inline">Marketplace</span></Link>
           <nav className="flex items-center gap-2 text-sm">
-            <Link className="hidden rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900 sm:inline-flex" href="/orders">Orders</Link>
-            <Link className="hidden rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900 sm:inline-flex" href="/messages">Messages</Link>
-            <Link className="hidden rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900 sm:inline-flex" href="/notifications">Alerts{unreadCount ? ` · ${unreadCount}` : ""}</Link>
-            <Link className="hidden rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900 sm:inline-flex" href="/wishlist">Wishlist</Link>
-            <Link className="hidden rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900 lg:inline-flex" href="/dashboard">Studio</Link>
-            <Link className="hidden rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900 sm:inline-flex" href="/profile">Profile</Link>
-            {profile.role === "college_admin" || profile.role === "super_admin" ? <Link className="hidden rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900 sm:inline-flex" href="/admin">Admin</Link> : null}
-            <Link className="inline-flex min-h-10 items-center rounded-full bg-violet-950 px-4 text-xs font-semibold text-white transition hover:bg-violet-900" href="/listings/new">List an item <span className="ml-1">+</span></Link>
-            <form action={signOut}><button className="hidden min-h-10 rounded-full px-3 text-xs font-semibold text-[#77717e] hover:text-violet-950 sm:inline-flex" type="submit">Sign out</button></form>
+            <div className="hidden items-center gap-1 lg:flex">
+              <Link className="rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900" href="/orders">Orders</Link>
+              <Link className="rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900" href="/messages">Messages</Link>
+              <Link className="rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900" href="/notifications">Alerts{unreadCount ? ` · ${unreadCount}` : ""}</Link>
+              <Link className="rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900" href="/wishlist">Wishlist</Link>
+              <Link className="rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900" href="/dashboard">Studio</Link>
+              <Link className="rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900" href="/profile">Profile</Link>
+              {profile.role === "college_admin" || profile.role === "super_admin" ? <Link className="rounded-full px-3 py-2 text-[#625b6b] hover:bg-violet-50 hover:text-violet-900" href="/admin">Admin</Link> : null}
+            </div>
+            <details className="relative lg:hidden">
+              <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-full border border-[#e8e3ec] bg-white px-3 text-xs font-semibold text-[#504a57] outline-none hover:border-violet-300 focus-visible:ring-4 focus-visible:ring-violet-100">
+                <MenuIcon size={15} aria-hidden="true" /> Menu
+              </summary>
+              <div className="absolute right-0 top-12 z-50 grid w-56 gap-1 rounded-2xl border border-[#e8e3ec] bg-white p-2 shadow-[0_18px_50px_-25px_rgba(35,23,55,.4)]">
+                <Link className="rounded-xl px-3 py-2.5 text-sm text-[#504a57] hover:bg-violet-50" href="/orders">Orders</Link>
+                <Link className="rounded-xl px-3 py-2.5 text-sm text-[#504a57] hover:bg-violet-50" href="/messages">Messages</Link>
+                <Link className="rounded-xl px-3 py-2.5 text-sm text-[#504a57] hover:bg-violet-50" href="/notifications">Alerts{unreadCount ? ` · ${unreadCount}` : ""}</Link>
+                <Link className="rounded-xl px-3 py-2.5 text-sm text-[#504a57] hover:bg-violet-50" href="/wishlist">Wishlist</Link>
+                <Link className="rounded-xl px-3 py-2.5 text-sm text-[#504a57] hover:bg-violet-50" href="/dashboard">Seller studio</Link>
+                <Link className="rounded-xl px-3 py-2.5 text-sm text-[#504a57] hover:bg-violet-50" href="/profile">Profile</Link>
+                {profile.role === "college_admin" || profile.role === "super_admin" ? <Link className="rounded-xl px-3 py-2.5 text-sm text-[#504a57] hover:bg-violet-50" href="/admin">Admin</Link> : null}
+                <form action={signOut} className="border-t border-[#f0edf0] pt-1"><button className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[#77717e] hover:bg-violet-50 hover:text-violet-950" type="submit">Sign out</button></form>
+              </div>
+            </details>
+            <Link aria-label="List an item" className="inline-flex min-h-10 items-center rounded-full bg-violet-950 px-4 text-xs font-semibold text-white transition hover:bg-violet-900" href="/listings/new"><span className="hidden sm:inline">List an item</span><span className="sm:hidden">Sell</span><span className="ml-1">+</span></Link>
+            <form action={signOut}><button className="hidden min-h-10 rounded-full px-3 text-xs font-semibold text-[#77717e] hover:text-violet-950 lg:inline-flex" type="submit">Sign out</button></form>
           </nav>
         </div>
       </header>
