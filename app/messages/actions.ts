@@ -27,6 +27,7 @@ export async function sendMessage(formData: FormData) {
     sender_id: userId,
     body: parsed.data.body,
   });
+  if (error?.code === "P0001" && error.message.includes("rate_limit_exceeded")) redirect(`/messages/${parsed.data.conversationId}?error=rate_limit`);
   if (error) redirect(`/messages/${parsed.data.conversationId}?error=message`);
   redirect(`/messages/${parsed.data.conversationId}`);
 }

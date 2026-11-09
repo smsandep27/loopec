@@ -29,6 +29,7 @@ export async function submitPaymentReference(formData: FormData) {
     p_order_id: parsed.data.orderId,
     p_reference: parsed.data.reference,
   });
+  if (error?.code === "P0001" && error.message.includes("rate_limit_exceeded")) redirect(`/orders/${parsed.data.orderId}?error=rate_limit`);
   redirect(error ? `/orders/${parsed.data.orderId}?error=payment` : `/orders/${parsed.data.orderId}?reference_submitted=1`);
 }
 

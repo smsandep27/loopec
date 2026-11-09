@@ -140,5 +140,6 @@ export async function reportListing(formData: FormData) {
     reason: parsed.data.reason,
     details: parsed.data.details,
   });
+  if (error?.code === "P0001" && error.message.includes("rate_limit_exceeded")) redirect(`/marketplace/${product.id}?error=rate_limit`);
   redirect(error ? `/marketplace/${product.id}?error=unavailable` : `/marketplace/${product.id}?reported=1`);
 }

@@ -52,7 +52,7 @@ export default async function ConversationPage({ params, searchParams }: PagePro
         </div>
         <LiveMessageThread conversationId={conversation.id} currentUserId={userId} initialMessages={messages} />
         {unreadCount ? <form action={markConversationRead} className="mb-3 text-right"><input type="hidden" name="conversation_id" value={conversation.id} /><button type="submit" className="text-xs font-semibold text-violet-800 hover:text-violet-950">Mark {unreadCount} message{unreadCount === 1 ? "" : "s"} as read</button></form> : null}
-        {error ? <p role="alert" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">We couldn’t send that message. Please try again.</p> : null}
+        {error ? <p role="alert" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">{error === "rate_limit" ? "You’ve sent several messages in a short time. Please wait a little before sending another." : "We couldn’t send that message. Please try again."}</p> : null}
         <form action={sendMessage} className="rounded-[22px] border border-[#e5e0e8] bg-white p-2.5 shadow-[0_15px_40px_-35px_rgba(43,29,68,.4)]">
           <input type="hidden" name="conversation_id" value={conversation.id} />
           <label className="sr-only" htmlFor="message-body">Write a message</label>

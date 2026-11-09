@@ -29,6 +29,10 @@ function getImageFiles(formData: FormData) {
   return formData.getAll("images").filter((item): item is File => item instanceof File && item.size > 0);
 }
 
+function isRateLimitError(error: { code?: string; message?: string } | null | undefined) {
+  return error?.code === "P0001" && error.message?.includes("rate_limit_exceeded");
+}
+
 function detectImage(bytes: Uint8Array) {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return { mime: "image/jpeg", extension: "jpg" };
   if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a) return { mime: "image/png", extension: "png" };
@@ -71,7 +75,7 @@ async function uploadImages({
     });
     if (error) {
       await supabase.storage.from("product-images").remove(uploaded);
-      return { error: "upload", uploaded, records };
+      return { error: error.message.includes("rate_limit_exceeded") ? "rate_limit" : "upload", uploaded, records };
     }
     uploaded.push(path);
     records.push({ product_id: productId, storage_path: path, alt_text: `${productName} photo ${sortOffset + index + 1}`, sort_order: sortOffset + index });
@@ -110,6 +114,7 @@ export async function createListing(formData: FormData) {
     })
     .select("id")
     .single();
+  if (isRateLimitError(error)) redirect("/listings/new?error=rate_limit");
   if (error || !product) redirect("/listings/new?error=save");
 
   const uploaded = await uploadImages({ supabase, files, userId, productId: product.id, productName: fields.data.name, sortOffset: 0 });

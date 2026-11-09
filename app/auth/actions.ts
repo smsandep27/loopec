@@ -237,7 +237,7 @@ export async function submitVerification(formData: FormData) {
       cacheControl: "0",
       upsert: false,
     });
-  if (uploadError) redirect("/verification?error=upload");
+  if (uploadError) redirect(`/verification?error=${uploadError.message.includes("rate_limit_exceeded") ? "rate_limit" : "upload"}`);
 
   const { error: insertError } = await supabase.from("user_verifications").insert({
     user_id: String(userId),
@@ -250,6 +250,7 @@ export async function submitVerification(formData: FormData) {
   if (insertError) {
     await supabase.storage.from("verification-documents").remove([path]);
     if (insertError.code === "23505") redirect("/verification?error=already_pending");
+    if (insertError.code === "P0001" && insertError.message.includes("rate_limit_exceeded")) redirect("/verification?error=rate_limit");
     redirect("/verification?error=upload");
   }
 

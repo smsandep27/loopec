@@ -23,6 +23,7 @@ export async function createOrders(formData: FormData) {
         p_pickup_location_id: parsed.data.pickupLocationId,
         p_idempotency_key: parsed.data.idempotencyKey,
       });
+  if (error?.code === "P0001" && error.message.includes("rate_limit_exceeded")) redirect("/checkout?error=rate_limit");
   if (error) redirect("/checkout?error=checkout");
   redirect("/orders?placed=1");
 }

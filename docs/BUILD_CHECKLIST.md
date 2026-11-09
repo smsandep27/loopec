@@ -52,6 +52,7 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [x] Add buyer-seller conversations, participant-scoped message access, unread state, and client-side Realtime subscriptions.
 - [ ] Apply `20261109000001_realtime_messages.sql` and verify message delivery remains participant-scoped.
 - [x] Add a notification centre and order/listing/verification/message events.
+- [x] Add user-scoped database rate limits for messages, listings, verification, reports, checkout, payment references, and private uploads.
 - [x] Add completed-order reviews and listing reports with moderation workflows.
 - [x] Build admin user verification, suspension, product moderation, order overview, transaction activity, reports, overview metrics, and super-admin settings.
 - [ ] Verify each admin queue and its audit records with college-admin and super-admin accounts in the pilot.
@@ -63,7 +64,7 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [ ] Run dependency and secret scans; review every server action, upload path, RLS policy, and privileged key boundary.
 - [ ] Verify mobile and desktop layouts, keyboard navigation, focus states, reduced motion, and screen-reader labels.
 - [ ] Verify PWA installability and offline behavior without caching authenticated or personal data.
-- [ ] Measure performance and correct Core Web Vitals issues; add rate limits to registration, uploads, messages, reports, and payment endpoints.
+- [ ] Measure performance and correct Core Web Vitals issues; apply `20261109000002_action_rate_limits.sql` and verify limits in the pilot. Registration uses Supabase Auth's built-in throttles.
 - [ ] Configure Vercel production/preview environments, Supabase redirect URLs, backup/restore, monitoring, and error reporting.
 - [ ] Walk the end-to-end pilot acceptance path with two verified accounts and one college admin after the Supabase project is configured.
 

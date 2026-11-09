@@ -12,9 +12,14 @@ export default function SetupPage() {
       {isSupabaseConfigured() ? (
         <div className="space-y-4">
           <p className="rounded-2xl bg-violet-50 p-4 text-sm leading-6 text-violet-950">
-            Supabase is configured. Apply the initial migration, then run <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">supabase/seeds/nit_calicut.sql</code> in the Supabase SQL Editor. That adds National Institute of Technology Calicut with its institutional <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">nitc.ac.in</code> email domain.
+            Supabase is connected. In the Supabase SQL Editor, apply <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">20261107000000_initial_schema.sql</code> only if this project does not already have the LOOPEC tables and types. If you see “type community_role already exists,” the schema is already there: do not run that file again.
           </p>
-          <p className="text-xs leading-5 text-[#7b7482]">The NITC pilot seed is configured for student, faculty, and staff addresses ending in <code>nitc.ac.in</code>.</p>
+          <ol className="list-decimal space-y-2 pl-5 text-xs leading-5 text-[#625b6b]">
+            <li>Run <code>supabase/seeds/nit_calicut.sql</code> to add NIT Calicut and its <code>nitc.ac.in</code> email domain. This seed can be safely rerun.</li>
+            <li>Apply the follow-up migrations in order: <code>20261109000000_admin_pickup_locations.sql</code>, <code>20261109000001_realtime_messages.sql</code>, then <code>20261109000002_action_rate_limits.sql</code>.</li>
+            <li>Configure Supabase Auth email delivery and the local callback URL before testing registration.</li>
+          </ol>
+          <p className="text-xs leading-5 text-[#7b7482]">NITC sign-in accepts confirmed student, faculty, and staff addresses ending in <code>nitc.ac.in</code>.</p>
           <Link className="inline-flex min-h-12 items-center justify-center rounded-full bg-violet-950 px-5 text-sm font-semibold text-white" href="/auth/sign-up">
             Continue to registration
           </Link>
