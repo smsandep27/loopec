@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(39);
+select extensions.plan(42);
 
 select extensions.has_table('public', 'colleges', 'college directory exists');
 select extensions.has_table('public', 'profiles', 'member profiles exist');
@@ -54,6 +54,9 @@ select extensions.ok(has_function_privilege('authenticated', 'public.create_sing
 select extensions.ok(has_function_privilege('authenticated', 'public.review_verification(uuid,public.verification_status,text)', 'execute'), 'authenticated callers can invoke the admin-guarded verification review');
 select extensions.ok(has_function_privilege('authenticated', 'public.manage_pickup_location(uuid,uuid,text,text,text,smallint,boolean)', 'execute'), 'authenticated callers can invoke the admin-guarded pickup manager');
 select extensions.ok(not has_function_privilege('anon', 'public.manage_pickup_location(uuid,uuid,text,text,text,smallint,boolean)', 'execute'), 'anonymous users cannot manage pickup locations');
+select extensions.ok(has_function_privilege('authenticated', 'public.authorize_private_upload(text,text)', 'execute'), 'authenticated server actions can consume the private-upload quota');
+select extensions.ok(not has_function_privilege('anon', 'public.authorize_private_upload(text,text)', 'execute'), 'anonymous users cannot consume private-upload quotas');
+select extensions.is((select file_size_limit::bigint from storage.buckets where id = 'product-images'), 4194304::bigint, 'product image bucket limit matches the 4 MiB server validation');
 select extensions.has_table('app_private', 'user_action_rate_limits', 'per-user rate limit storage exists outside the public schema');
 select extensions.ok(not has_table_privilege('authenticated', 'app_private.user_action_rate_limits', 'select'), 'users cannot inspect rate-limit records');
 select extensions.ok(not has_schema_privilege('anon', 'app_private', 'usage'), 'anonymous users cannot access private authorization helpers');

@@ -42,6 +42,50 @@ function parsePrice(value?: string) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
+function filterPreviewProducts({
+  search,
+  categoryId,
+  minPrice,
+  maxPrice,
+  sort,
+  categories,
+}: {
+  search: string;
+  categoryId: string;
+  minPrice: number | null;
+  maxPrice: number | null;
+  sort: "recent" | "price_low" | "price_high";
+  categories: Category[];
+}) {
+  const searchTerms = search.toLowerCase().split(/\s+/).filter(Boolean);
+  const activeCategoryId = categories.some((category) => category.id === categoryId) ? categoryId : "";
+
+  return [...previewProducts]
+    .filter((product) => {
+      const searchableText = `${product.name} ${product.description}`.toLowerCase();
+      const matchesSearch = searchTerms.every((term) => searchableText.includes(term));
+      const matchesCategory = !activeCategoryId || product.category_id === activeCategoryId;
+      const price = Number(product.price);
+      const matchesMin = minPrice === null || price >= minPrice;
+      const matchesMax = maxPrice === null || price <= maxPrice;
+      return matchesSearch && matchesCategory && matchesMin && matchesMax;
+    })
+    .sort((left, right) => {
+      const featuredOrder = Number(right.is_featured) - Number(left.is_featured);
+      if (sort === "price_low") return Number(left.price) - Number(right.price) || featuredOrder;
+      if (sort === "price_high") return Number(right.price) - Number(left.price) || featuredOrder;
+      if (featuredOrder) return featuredOrder;
+      return Date.parse(right.published_at ?? "1970-01-01") - Date.parse(left.published_at ?? "1970-01-01");
+    });
+}
+
+function marketplaceDataHelp(code?: string) {
+  if (code === "PGRST106") return "The public schema is not exposed to the Data API. Add public to the project's exposed schemas.";
+  if (code === "PGRST205" || code === "42P01") return "A required marketplace table is missing or not in the API schema cache. Apply the missing migration once, then refresh the schema cache.";
+  if (code === "42501") return "The Data API reached the database, but its grants or row-level security setup is incomplete.";
+  return "The app could not read marketplace data from Supabase. Check the project URL, Data API, migrations, and public schema settings.";
+}
+
 export default async function MarketplacePage({ searchParams }: PageProps<"/marketplace">) {
   const params = await searchParams;
   const search = (first(params.q) ?? "").trim().slice(0, 100);
@@ -73,13 +117,16 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
   if (categoryId && categories.some((category) => category.id === categoryId)) query = query.eq("category_id", categoryId);
   if (minPrice !== null) query = query.gte("price", minPrice);
   if (maxPrice !== null) query = query.lte("price", maxPrice);
-  query = query.order("is_featured", { ascending: false });
-  if (sort === "price_low") query = query.order("price", { ascending: true });
-  else if (sort === "price_high") query = query.order("price", { ascending: false });
-  else query = query.order("published_at", { ascending: false, nullsFirst: false });
+  if (sort === "price_low") {
+    query = query.order("price", { ascending: true }).order("is_featured", { ascending: false });
+  } else if (sort === "price_high") {
+    query = query.order("price", { ascending: false }).order("is_featured", { ascending: false });
+  } else {
+    query = query.order("is_featured", { ascending: false }).order("published_at", { ascending: false, nullsFirst: false });
+  }
 
   const { data: productData, error: productsError } = previewMode
-    ? { data: previewProducts, error: null }
+    ? { data: filterPreviewProducts({ search, categoryId, minPrice, maxPrice, sort, categories }), error: null }
     : await query;
   const products = (productData ?? []) as ProductRow[];
   const productIds = products.map((product) => product.id);
@@ -179,7 +226,11 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
           <span className="text-[11px] font-medium text-[#928b96]">Verified listings · private to your campus</span>
         </div>
         {productsError ? (
-          <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">Marketplace data is not available. Check that the pilot schema and public Data API access are configured.</div>
+          <div role="alert" className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">
+            <p className="font-semibold">Marketplace data could not be loaded.</p>
+            <p className="mt-1">{marketplaceDataHelp(productsError.code)}</p>
+            <Link className="mt-3 inline-flex font-semibold text-violet-900 underline underline-offset-4" href="/setup#data-api">Open the Supabase connection steps</Link>
+          </div>
         ) : cards.length ? (
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {cards.map((product) => <ProductCard key={product.id} product={product} saved={saved.has(product.id)} returnTo="/marketplace" currentUserId={userId} previewMode={previewMode} />)}

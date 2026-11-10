@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireApprovedMember } from "@/lib/auth/member";
+import { createStorageAdminClient } from "@/lib/supabase/admin";
 
 const listingFields = z.object({
   categoryId: z.uuid(),
@@ -42,6 +43,7 @@ function detectImage(bytes: Uint8Array) {
 
 async function uploadImages({
   supabase,
+  storageAdmin,
   files,
   userId,
   productId,
@@ -49,6 +51,7 @@ async function uploadImages({
   sortOffset,
 }: {
   supabase: SupabaseClient;
+  storageAdmin: SupabaseClient | null;
   files: File[];
   userId: string;
   productId: string;
@@ -57,25 +60,35 @@ async function uploadImages({
 }) {
   const uploaded: string[] = [];
   const records: { product_id: string; storage_path: string; alt_text: string; sort_order: number }[] = [];
+  if (!storageAdmin) return { error: "storage_config", uploaded, records };
+
   for (const [index, file] of files.entries()) {
     if (file.size > 4 * 1024 * 1024) {
-      await supabase.storage.from("product-images").remove(uploaded);
+      await storageAdmin.storage.from("product-images").remove(uploaded);
       return { error: "size", uploaded, records };
     }
     const fileType = detectImage(new Uint8Array(await file.slice(0, 12).arrayBuffer()));
     if (!fileType) {
-      await supabase.storage.from("product-images").remove(uploaded);
+      await storageAdmin.storage.from("product-images").remove(uploaded);
       return { error: "type", uploaded, records };
     }
     const path = `${userId}/${productId}/${crypto.randomUUID()}.${fileType.extension}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, file, {
+    const { data: authorized, error: limitError } = await supabase.rpc("authorize_private_upload", {
+      p_bucket_id: "product-images",
+      p_name: path,
+    });
+    if (limitError || !authorized) {
+      await storageAdmin.storage.from("product-images").remove(uploaded);
+      return { error: isRateLimitError(limitError) ? "rate_limit" : "upload", uploaded, records };
+    }
+    const { error } = await storageAdmin.storage.from("product-images").upload(path, file, {
       contentType: fileType.mime,
       cacheControl: "3600",
       upsert: false,
     });
     if (error) {
-      await supabase.storage.from("product-images").remove(uploaded);
-      return { error: error.message.includes("rate_limit_exceeded") ? "rate_limit" : "upload", uploaded, records };
+      await storageAdmin.storage.from("product-images").remove(uploaded);
+      return { error: "upload", uploaded, records };
     }
     uploaded.push(path);
     records.push({ product_id: productId, storage_path: path, alt_text: `${productName} photo ${sortOffset + index + 1}`, sort_order: sortOffset + index });
@@ -84,7 +97,7 @@ async function uploadImages({
   if (records.length) {
     const { error } = await supabase.from("product_images").insert(records);
     if (error) {
-      await supabase.storage.from("product-images").remove(uploaded);
+      await storageAdmin.storage.from("product-images").remove(uploaded);
       return { error: "upload", uploaded: [], records: [] };
     }
   }
@@ -96,6 +109,8 @@ export async function createListing(formData: FormData) {
   const files = getImageFiles(formData);
   if (!fields.success || files.length < 1 || files.length > 5) redirect("/listings/new?error=invalid");
   const { supabase, userId, profile } = await requireApprovedMember();
+  const storageAdmin = createStorageAdminClient();
+  if (!storageAdmin) redirect("/setup#storage-key");
   if (!profile.college_id) redirect("/listings/new?error=invalid");
   const { data: category } = await supabase.from("categories").select("id").eq("id", fields.data.categoryId).eq("is_active", true).maybeSingle();
   if (!category) redirect("/listings/new?error=invalid");
@@ -117,7 +132,7 @@ export async function createListing(formData: FormData) {
   if (isRateLimitError(error)) redirect("/listings/new?error=rate_limit");
   if (error || !product) redirect("/listings/new?error=save");
 
-  const uploaded = await uploadImages({ supabase, files, userId, productId: product.id, productName: fields.data.name, sortOffset: 0 });
+  const uploaded = await uploadImages({ supabase, storageAdmin, files, userId, productId: product.id, productName: fields.data.name, sortOffset: 0 });
   if (uploaded.error) {
     await supabase.from("products").delete().eq("id", product.id);
     redirect(`/listings/new?error=${uploaded.error}`);
@@ -134,6 +149,8 @@ export async function updateListing(formData: FormData) {
   const files = getImageFiles(formData);
   if (!productId.success || !fields.success || files.length > 5) redirect("/listings?error=invalid");
   const { supabase, userId } = await requireApprovedMember();
+  const storageAdmin = files.length ? createStorageAdminClient() : null;
+  if (files.length && !storageAdmin) redirect(`/setup#storage-key`);
   const { data: product } = await supabase.from("products").select("id, seller_id, status, name").eq("id", productId.data).maybeSingle();
   if (!product || product.seller_id !== userId || !["draft", "rejected"].includes(product.status)) redirect("/listings?error=unavailable");
   const { data: category } = await supabase.from("categories").select("id").eq("id", fields.data.categoryId).eq("is_active", true).maybeSingle();
@@ -152,7 +169,7 @@ export async function updateListing(formData: FormData) {
   if (files.length) {
     const { count } = await supabase.from("product_images").select("id", { count: "exact", head: true }).eq("product_id", product.id);
     if ((count ?? 0) + files.length > 20) redirect(`/listings/${product.id}/edit?error=too_many_images`);
-    const uploaded = await uploadImages({ supabase, files, userId, productId: product.id, productName: fields.data.name, sortOffset: count ?? 0 });
+    const uploaded = await uploadImages({ supabase, storageAdmin, files, userId, productId: product.id, productName: fields.data.name, sortOffset: count ?? 0 });
     if (uploaded.error) redirect(`/listings/${product.id}/edit?error=${uploaded.error}`);
   }
   redirect(`/listings/${product.id}/edit?saved=1`);

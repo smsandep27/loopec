@@ -24,6 +24,44 @@ test("developer marketplace preview shows sample listings without a data error",
   assert.doesNotMatch(html, /Marketplace data is not available/);
 });
 
+test("developer marketplace preview search and filters narrow sample listings", async () => {
+  const [searchResponse, categoryResponse, priceResponse] = await Promise.all([
+    get("/marketplace?q=lamp"),
+    get("/marketplace?category=demo-books"),
+    get("/marketplace?min=400&max=500"),
+  ]);
+  const [searchHtml, categoryHtml, priceHtml] = await Promise.all([
+    searchResponse.text(),
+    categoryResponse.text(),
+    priceResponse.text(),
+  ]);
+
+  assert.match(searchHtml, /LED study lamp/);
+  assert.doesNotMatch(searchHtml, /Scientific calculator/);
+  assert.match(categoryHtml, /Engineering mathematics textbooks/);
+  assert.doesNotMatch(categoryHtml, /LED study lamp/);
+  assert.match(priceHtml, /Engineering mathematics textbooks/);
+  assert.doesNotMatch(priceHtml, /Scientific calculator|LED study lamp/);
+});
+
+test("developer marketplace preview honors ascending and descending price sorts", async () => {
+  const [lowResponse, highResponse] = await Promise.all([
+    get("/marketplace?sort=price_low"),
+    get("/marketplace?sort=price_high"),
+  ]);
+  const [lowHtml, highHtml] = await Promise.all([lowResponse.text(), highResponse.text()]);
+  const nameOrder = (html) => [
+    html.indexOf("LED study lamp"),
+    html.indexOf("Engineering mathematics textbooks"),
+    html.indexOf("Scientific calculator"),
+  ];
+  const lowOrder = nameOrder(lowHtml);
+  const highOrder = nameOrder(highHtml);
+
+  assert.ok(lowOrder[0] >= 0 && lowOrder[0] < lowOrder[1] && lowOrder[1] < lowOrder[2]);
+  assert.ok(highOrder[2] >= 0 && highOrder[2] < highOrder[1] && highOrder[1] < highOrder[0]);
+});
+
 test("sign-in page explains the college account flow", async () => {
   const response = await get("/auth/sign-in");
   const html = await response.text();

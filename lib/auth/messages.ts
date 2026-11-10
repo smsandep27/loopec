@@ -9,6 +9,7 @@ const messages: Record<string, string> = {
   session: "Your session has expired. Sign in again to continue.",
   expired: "That confirmation link is invalid or has expired. Request a new one.",
   upload: "We could not save the selected file or photo. Check it and try again.",
+  storage_config: "Secure uploads are not configured yet. Open setup and add the server-only Supabase secret key.",
   rate_limit: "You’ve made several requests in a short time. Please wait a little and try again.",
   already_pending: "Your verification is already under review.",
   verification_review: "We could not complete that review. Refresh the queue and try again.",

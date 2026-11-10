@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { createStorageAdminClient } from "@/lib/supabase/admin";
 
 const signUpSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
@@ -230,14 +231,26 @@ export async function submitVerification(formData: FormData) {
   if (!fileType) redirect("/verification?error=upload");
 
   const path = `${String(userId)}/${crypto.randomUUID()}.${fileType.extension}`;
-  const { error: uploadError } = await supabase.storage
+  const storageAdmin = createStorageAdminClient();
+  if (!storageAdmin) redirect("/setup#storage-key");
+
+  const { data: authorized, error: limitError } = await supabase.rpc("authorize_private_upload", {
+    p_bucket_id: "verification-documents",
+    p_name: path,
+  });
+  if (limitError?.code === "P0001" && limitError.message.includes("rate_limit_exceeded")) {
+    redirect("/verification?error=rate_limit");
+  }
+  if (limitError || !authorized) redirect("/verification?error=upload");
+
+  const { error: uploadError } = await storageAdmin.storage
     .from("verification-documents")
     .upload(path, document, {
       contentType: fileType.mime,
       cacheControl: "0",
       upsert: false,
     });
-  if (uploadError) redirect(`/verification?error=${uploadError.message.includes("rate_limit_exceeded") ? "rate_limit" : "upload"}`);
+  if (uploadError) redirect("/verification?error=upload");
 
   const { error: insertError } = await supabase.from("user_verifications").insert({
     user_id: String(userId),
@@ -248,7 +261,7 @@ export async function submitVerification(formData: FormData) {
   });
 
   if (insertError) {
-    await supabase.storage.from("verification-documents").remove([path]);
+    await storageAdmin.storage.from("verification-documents").remove([path]);
     if (insertError.code === "23505") redirect("/verification?error=already_pending");
     if (insertError.code === "P0001" && insertError.message.includes("rate_limit_exceeded")) redirect("/verification?error=rate_limit");
     redirect("/verification?error=upload");

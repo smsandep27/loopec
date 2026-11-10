@@ -15,6 +15,8 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [x] Add About, Terms, and Privacy pages; keep policy drafts visibly marked for pilot operator review.
 - [x] Draft the normalized PostgreSQL migration with core tables, indexes, constraints, RLS, private storage buckets, and guarded verification, moderation, and order-state RPCs.
 - [x] Apply the initial schema and NIT Calicut seed; confirm the expected 20 tables, seven enum types, and public NITC college lookup.
+- [x] Confirm the public NITC lookup works and anonymous access to categories, products, and pickup points is denied as intended by the authenticated-only grants; do not grant `anon` access to clear that response.
+- [ ] Use `/setup` with a real approved NITC session to verify marketplace table reads; no authenticated member session is configured in this workspace.
 - [ ] Verify policies against real `anon`, approved-member, seller, college-admin, and super-admin sessions.
 - [ ] Add generated database types after the schema is applied to the pilot Supabase project.
 
@@ -55,6 +57,8 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [ ] Apply `20261109000001_realtime_messages.sql` and verify message delivery remains participant-scoped.
 - [x] Add a notification centre and order/listing/verification/message events.
 - [x] Add user-scoped database rate limits for messages, listings, verification, reports, checkout, payment references, and private uploads.
+- [x] Enforce active-member checks in peer profile reads, review writes, profile updates, and suspended-seller checkout paths in a follow-up migration.
+- [x] Remove direct authenticated Storage inserts; route validated uploads through server actions using a server-only Supabase secret key.
 - [x] Add completed-order reviews and listing reports with moderation workflows.
 - [x] Build admin user verification, suspension, product moderation, order overview, transaction activity, reports, overview metrics, and super-admin settings.
 - [ ] Verify each admin queue and its audit records with college-admin and super-admin accounts in the pilot.
@@ -64,7 +68,10 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [x] Run local TypeScript, lint, and optimized production-build checks.
 - [x] Add and run no-dependency local smoke tests for the landing page, developer marketplace, sign-in, PWA manifest/assets, service worker, and offline fallback.
 - [x] Add pgTAP coverage for verification approval, RLS, listing moderation, checkout idempotency, manual payment review, order/pickup transitions, inventory restoration, and audited pickup administration.
-- [ ] Run the database suite with Supabase CLI and Docker; verify concurrency and role behavior against the pilot database.
+- [x] Run the full npm dependency audit; resolve the seven moderate development-tool findings with a TypeScript ESLint-scoped `minimatch` override and confirm `npm audit` reports zero vulnerabilities.
+- [ ] Run the database suite with Supabase CLI and Docker; the latest attempt could not connect to local Postgres at `127.0.0.1:54322` (start Docker, then `supabase start`) so concurrency and role behavior remain unverified.
+- [ ] Apply `20261110044017_pilot_security_fixes.sql` after the rate-limit migration. The public Data API responds and the active NITC row is readable, but the Supabase management connector has no project and the CLI has no access token, so migration history and DDL must be checked/applied through the project owner's SQL Editor.
+- [ ] Set `SUPABASE_SECRET_KEY` in `.env.local` and production secrets so secure private uploads can work; keep it out of browser variables.
 - [ ] Verify Auth email delivery, signed Storage access, Realtime delivery, and any future payment-provider webhook idempotency.
 - [ ] Run dependency and secret scans; review every server action, upload path, RLS policy, and privileged key boundary.
 - [ ] Verify mobile and desktop layouts, keyboard navigation, focus states, reduced motion, and screen-reader labels.
