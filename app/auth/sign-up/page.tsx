@@ -28,6 +28,10 @@ export default async function SignUpPage({ searchParams }: PageProps<"/auth/sign
     collegeLoadError = Boolean(loadError);
     if (!loadError) colleges = (data ?? []) as typeof colleges;
   }
+  const singleCollege = colleges.length === 1 ? colleges[0] : null;
+  const emailDomain = singleCollege?.email_domains.length === 1
+    ? singleCollege.email_domains[0].trim().toLowerCase()
+    : null;
 
   return (
     <AuthShell
@@ -55,11 +59,12 @@ export default async function SignUpPage({ searchParams }: PageProps<"/auth/sign
             </label>
             <label className={labelClassName}>
               College email
-              <input className={inputClassName} name="email" type="email" autoComplete="email" required />
+              <input className={inputClassName} name="email" type="email" autoComplete="email" placeholder={emailDomain ? `name@${emailDomain}` : undefined} required />
+              {emailDomain ? <span className="mt-1.5 block text-xs font-normal text-[#87818c]">Use your @{emailDomain} address. We&apos;ll send the confirmation link there.</span> : null}
             </label>
             <label className={labelClassName}>
               College
-              <select className={inputClassName} name="college_id" required defaultValue="">
+              <select className={inputClassName} name="college_id" required defaultValue={singleCollege?.id ?? ""}>
                 <option value="" disabled>Select your college</option>
                 {colleges.map((college) => <option key={college.id} value={college.id}>{college.name}</option>)}
               </select>
