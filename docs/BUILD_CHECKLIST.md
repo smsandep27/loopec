@@ -68,7 +68,11 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 ## Phase 6 — Production readiness
 
 - [x] Run local TypeScript, lint, and optimized production-build checks.
-- [x] Add and run no-dependency local smoke tests for the landing page, developer marketplace, sign-in, PWA manifest/assets, service worker, and offline fallback.
+- [x] Add and run no-dependency local smoke tests for the landing page, developer marketplace, sign-in, PWA manifest/assets, service worker, and offline fallback (8/8 passing).
+- [x] Configure git remote (`https://github.com/smsandep27/loopec.git`) and push `main` branch to trigger Vercel deployment.
+- [x] Resolve Windows path casing mismatch (`D:\Loopec`) that caused duplicate React instances.
+- [x] Convert `PwaRegister` to an inline script Server Component to guarantee zero SSR/prerender hook crashes.
+- [x] Provide consolidated SQL batch script `supabase/operations/apply_pending_migrations.sql` for 1-click execution in Supabase SQL Editor.
 - [x] Add pgTAP coverage for verification approval, RLS, listing moderation, checkout idempotency, manual payment review, order/pickup transitions, inventory restoration, and audited pickup administration.
 - [x] Run the full npm dependency audit; resolve the seven moderate development-tool findings with a TypeScript ESLint-scoped `minimatch` override and confirm `npm audit` reports zero vulnerabilities.
 - [ ] Run the database suite with Supabase CLI and Docker; the latest attempt could not connect to local Postgres at `127.0.0.1:54322` (start Docker, then `supabase start`) so concurrency and role behavior remain unverified.
