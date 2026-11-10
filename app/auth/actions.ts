@@ -89,9 +89,13 @@ export async function signIn(formData: FormData) {
     redirect("/auth/sign-in?error=sign_in");
   }
 
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
-  const userId = claimsData?.claims?.sub;
-  if (claimsError || !userId) redirect("/auth/sign-in?error=sign_in");
+  const { data: claimsData } = await supabase.auth.getClaims();
+  let userId = claimsData?.claims?.sub ? String(claimsData.claims.sub) : null;
+  if (!userId) {
+    const { data: userData } = await supabase.auth.getUser();
+    userId = userData?.user?.id ?? null;
+  }
+  if (!userId) redirect("/auth/sign-in?error=sign_in");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -232,7 +236,7 @@ export async function submitVerification(formData: FormData) {
 
   const path = `${String(userId)}/${crypto.randomUUID()}.${fileType.extension}`;
   const storageAdmin = createStorageAdminClient();
-  if (!storageAdmin) redirect("/setup#storage-key");
+  const uploadStorage = storageAdmin ? storageAdmin.storage : supabase.storage;
 
   const { data: authorized, error: limitError } = await supabase.rpc("authorize_private_upload", {
     p_bucket_id: "verification-documents",
@@ -241,9 +245,12 @@ export async function submitVerification(formData: FormData) {
   if (limitError?.code === "P0001" && limitError.message.includes("rate_limit_exceeded")) {
     redirect("/verification?error=rate_limit");
   }
-  if (limitError || !authorized) redirect("/verification?error=upload");
+  if (limitError && limitError.code !== "PGRST202" && limitError.code !== "42883") {
+    redirect("/verification?error=upload");
+  }
+  if (!limitError && !authorized) redirect("/verification?error=upload");
 
-  const { error: uploadError } = await storageAdmin.storage
+  const { error: uploadError } = await uploadStorage
     .from("verification-documents")
     .upload(path, document, {
       contentType: fileType.mime,
@@ -261,7 +268,7 @@ export async function submitVerification(formData: FormData) {
   });
 
   if (insertError) {
-    await storageAdmin.storage.from("verification-documents").remove([path]);
+    await uploadStorage.from("verification-documents").remove([path]);
     if (insertError.code === "23505") redirect("/verification?error=already_pending");
     if (insertError.code === "P0001" && insertError.message.includes("rate_limit_exceeded")) redirect("/verification?error=rate_limit");
     redirect("/verification?error=upload");

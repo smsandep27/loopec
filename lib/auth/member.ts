@@ -23,12 +23,22 @@ export async function getCurrentMember() {
   if (!isSupabaseConfigured()) redirect("/setup");
 
   const supabase = await createClient();
+  let userId: string | null = null;
+
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
-  if (claimsError || !claimsData?.claims?.sub) {
+  if (!claimsError && claimsData?.claims?.sub) {
+    userId = String(claimsData.claims.sub);
+  } else {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (!userError && userData?.user?.id) {
+      userId = userData.user.id;
+    }
+  }
+
+  if (!userId) {
     return { supabase, userId: null, profile: null };
   }
 
-  const userId = String(claimsData.claims.sub);
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, handle, phone, bio, college_id, role, verification_status, suspended_at")

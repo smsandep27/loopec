@@ -60,16 +60,16 @@ async function uploadImages({
 }) {
   const uploaded: string[] = [];
   const records: { product_id: string; storage_path: string; alt_text: string; sort_order: number }[] = [];
-  if (!storageAdmin) return { error: "storage_config", uploaded, records };
+  const uploadStorage = storageAdmin ? storageAdmin.storage : supabase.storage;
 
   for (const [index, file] of files.entries()) {
     if (file.size > 4 * 1024 * 1024) {
-      await storageAdmin.storage.from("product-images").remove(uploaded);
+      await uploadStorage.from("product-images").remove(uploaded);
       return { error: "size", uploaded, records };
     }
     const fileType = detectImage(new Uint8Array(await file.slice(0, 12).arrayBuffer()));
     if (!fileType) {
-      await storageAdmin.storage.from("product-images").remove(uploaded);
+      await uploadStorage.from("product-images").remove(uploaded);
       return { error: "type", uploaded, records };
     }
     const path = `${userId}/${productId}/${crypto.randomUUID()}.${fileType.extension}`;
@@ -77,17 +77,21 @@ async function uploadImages({
       p_bucket_id: "product-images",
       p_name: path,
     });
-    if (limitError || !authorized) {
-      await storageAdmin.storage.from("product-images").remove(uploaded);
+    if (limitError && limitError.code !== "PGRST202" && limitError.code !== "42883") {
+      await uploadStorage.from("product-images").remove(uploaded);
       return { error: isRateLimitError(limitError) ? "rate_limit" : "upload", uploaded, records };
     }
-    const { error } = await storageAdmin.storage.from("product-images").upload(path, file, {
+    if (!limitError && !authorized) {
+      await uploadStorage.from("product-images").remove(uploaded);
+      return { error: "upload", uploaded, records };
+    }
+    const { error } = await uploadStorage.from("product-images").upload(path, file, {
       contentType: fileType.mime,
       cacheControl: "3600",
       upsert: false,
     });
     if (error) {
-      await storageAdmin.storage.from("product-images").remove(uploaded);
+      await uploadStorage.from("product-images").remove(uploaded);
       return { error: "upload", uploaded, records };
     }
     uploaded.push(path);
@@ -97,7 +101,7 @@ async function uploadImages({
   if (records.length) {
     const { error } = await supabase.from("product_images").insert(records);
     if (error) {
-      await storageAdmin.storage.from("product-images").remove(uploaded);
+      await uploadStorage.from("product-images").remove(uploaded);
       return { error: "upload", uploaded: [], records: [] };
     }
   }
