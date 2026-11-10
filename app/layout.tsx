@@ -2,6 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
+// Opt out of static-shell validation for the whole app: pages with real
+// database calls are dynamic and must not be validated as instant-navigable.
+export const instant = false;
+
 export const metadata: Metadata = {
   applicationName: "LOOPEC",
   title: {
