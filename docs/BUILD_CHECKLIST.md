@@ -15,6 +15,8 @@ Delivery target: an initial one-college pilot, planned over 18 days, with a deve
 - [x] Add About, Terms, and Privacy pages; keep policy drafts visibly marked for pilot operator review.
 - [x] Draft the normalized PostgreSQL migration with core tables, indexes, constraints, RLS, private storage buckets, and guarded verification, moderation, and order-state RPCs.
 - [x] Apply the initial schema and NIT Calicut seed; confirm the expected 20 tables, seven enum types, and public NITC college lookup.
+- [x] Add a read-only pilot preflight query for table presence, RLS, role grants, Storage privacy, Realtime, and follow-up migration markers; it makes no database changes.
+- [ ] Run the preflight in the pilot SQL Editor as the project owner and compare `CHECK` rows against the pending migrations.
 - [x] Confirm the public NITC lookup works and anonymous access to categories, products, and pickup points is denied as intended by the authenticated-only grants; do not grant `anon` access to clear that response.
 - [ ] Use `/setup` with a real approved NITC session to verify marketplace table reads; no authenticated member session is configured in this workspace.
 - [ ] Verify policies against real `anon`, approved-member, seller, college-admin, and super-admin sessions.

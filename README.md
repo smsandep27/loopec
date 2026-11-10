@@ -16,7 +16,7 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The landing page, setup guidance, and offline fallback work without Supabase credentials. Set the Supabase URL, publishable key, server-only secret key, and canonical site URL to enable accounts, verification, and secure file uploads.
+Open [http://localhost:3000](http://localhost:3000). The landing page, setup guidance, and offline fallback work without Supabase credentials. Set the Supabase URL and publishable key for account sessions, the canonical site URL for auth callbacks, and the server-only secret key for secure file uploads.
 
 For a local UI walkthrough before creating a member, `.env.local` may set `LOOPEC_DEV_BYPASS_AUTH=true`. This is honored only by `next dev`, shows clearly marked sample listings, and does not grant access to production or allow account actions. Remove the flag when you want to test real authentication.
 
@@ -24,15 +24,16 @@ For a local UI walkthrough before creating a member, `.env.local` may set `LOOPE
 
 1. Create the pilot Supabase project and add its URL, publishable key, secret key, and canonical site origin to `.env.local`. The secret key must be named `SUPABASE_SECRET_KEY` with no `NEXT_PUBLIC_` prefix; keep it only in server environments.
 2. Apply `supabase/migrations/20261107000000_initial_schema.sql` only to that pilot project. If you already applied it, do not rerun it.
-3. In the project's Data API settings, confirm the Data API is enabled and `public` is in Exposed schemas. `public` is normally exposed by default, but project settings can disable it. The migrations grant the required database roles; RLS still controls which rows each user can access.
+3. In the project's Data API settings, confirm the Data API is enabled and `public` is in Exposed schemas. `public` is normally exposed by default, but project settings can disable it. The migrations grant the required database roles; RLS still controls which rows each user can access. Do not grant `anon` access to marketplace tables; an unauthenticated `42501` denial is expected for categories, products, and pickup points.
 4. Run `supabase/seeds/nit_calicut.sql` in the Supabase SQL Editor. It adds National Institute of Technology Calicut with the confirmed `nitc.ac.in` domain for students, faculty, and staff.
-5. Apply `supabase/migrations/20261109000000_admin_pickup_locations.sql` after the initial schema. It adds an admin-only audited function for pickup point management.
-6. Apply `supabase/migrations/20261109000001_realtime_messages.sql` to add private conversation messages to the Realtime publication.
-7. Apply `supabase/migrations/20261109000002_action_rate_limits.sql` once to add database-enforced user limits for writes and private uploads; skip it if already applied. Supabase Auth applies its own registration and email throttles.
-8. Apply `supabase/migrations/20261110044017_pilot_security_fixes.sql` after the rate-limit migration. It closes the profile, suspension, and upload-policy gaps found during review.
-9. Register and confirm the first admin account, replace the email in `supabase/operations/promote_first_college_admin.sql`, then run that script once in the Supabase SQL Editor as the project owner. It checks the confirmed `nitc.ac.in` account, promotes it for NIT Calicut, and records the bootstrap in `audit_logs`. Create a separate super-admin only when global settings management is needed.
-10. Sign in as the college admin and add only campus-approved meeting points at `/admin/pickup`.
-11. Configure Supabase Auth email delivery and redirect URLs, including `/auth/callback`, before enabling registration.
+5. Run the read-only `supabase/operations/pilot_preflight.sql` in the Supabase SQL Editor as the project owner. It reports `PASS` or `CHECK` for tables, RLS, grants, Storage, Realtime, and migration-specific objects; it makes no database changes and does not record migration history. Compare its results with the remaining steps and never rerun the initial schema or seed because a follow-up check needs attention.
+6. Apply `supabase/migrations/20261109000000_admin_pickup_locations.sql` after the initial schema. It adds an admin-only audited function for pickup point management.
+7. Apply `supabase/migrations/20261109000001_realtime_messages.sql` to add private conversation messages to the Realtime publication.
+8. Apply `supabase/migrations/20261109000002_action_rate_limits.sql` once to add database-enforced user limits for writes and private uploads; skip it if already applied. Supabase Auth applies its own registration and email throttles.
+9. Apply `supabase/migrations/20261110044017_pilot_security_fixes.sql` after the rate-limit migration. It closes the profile, suspension, and upload-policy gaps found during review.
+10. Register and confirm the first admin account, replace the email in `supabase/operations/promote_first_college_admin.sql`, then run that script once in the Supabase SQL Editor as the project owner. It checks the confirmed `nitc.ac.in` account, promotes it for NIT Calicut, and records the bootstrap in `audit_logs`. Create a separate super-admin only when global settings management is needed.
+11. Sign in as the college admin and add only campus-approved meeting points at `/admin/pickup`.
+12. Configure Supabase Auth email delivery and redirect URLs, including `/auth/callback`, before enabling registration.
 
 The migrations create private `verification-documents` and `product-images` buckets and limit MIME types and file size. Authenticated clients cannot upload directly: protected server actions check the file signature and consume the database upload quota before writing with the server-only secret key. Verification documents remain private and are accessible only to their owner and authorized college admins. Never add a Supabase secret key to a `NEXT_PUBLIC_` variable or browser code.
 
