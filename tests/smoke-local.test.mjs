@@ -152,7 +152,7 @@ test("POST /api/create-order creates Razorpay orders and validates minimum amoun
     assert.ok(data.order_id);
     assert.equal(data.amount, 10000);
     assert.equal(data.currency, "INR");
-    assert.equal(data.key_id, "rzp_test_TyrHB85hPzd9WV");
+    assert.equal(data.key_id, process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TyreyjCIz9Wdr2");
   } else {
     // If external network is unreachable or throttled in CI, it must return a handled error
     assert.ok([200, 401, 500, 502, 503].includes(goodRes.status));
@@ -160,7 +160,7 @@ test("POST /api/create-order creates Razorpay orders and validates minimum amoun
 });
 
 test("POST /api/verify-payment validates HMAC-SHA256 signatures", async () => {
-  const secret = "bIrPjhzCdYJuLHoEueIgifYJ";
+  const secret = process.env.RAZORPAY_KEY_SECRET || "x99hnME8YstbOjOvwvnTsBaq";
   const orderId = "order_test_123456";
   const paymentId = "pay_test_789012";
 

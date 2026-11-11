@@ -33,7 +33,7 @@ export default async function RazorpayDemoPage() {
           </div>
 
           <p className="mt-4 text-xs leading-6 text-[#726a7e]">
-            This page demonstrates the 3-step Razorpay Standard Web Checkout flow using your configured Test Credentials (<code>rzp_test_TyrHB85hPzd9WV</code>):
+            This page demonstrates the 3-step Razorpay Standard Web Checkout flow using your configured Test Credentials (<code>rzp_test_TyreyjCIz9Wdr2</code>):
           </p>
 
           <ol className="mt-4 list-decimal space-y-2 pl-4 text-xs text-[#5e5668]">
