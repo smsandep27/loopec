@@ -16,12 +16,23 @@ const signUpSchema = z.object({
 
 function siteOrigin() {
   const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!configuredOrigin) return "http://localhost:3000";
-  try {
-    return new URL(configuredOrigin).origin;
-  } catch {
-    return "http://localhost:3000";
+  if (configuredOrigin && !configuredOrigin.includes("localhost")) {
+    try {
+      return new URL(configuredOrigin).origin;
+    } catch {}
   }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  if (configuredOrigin) {
+    try {
+      return new URL(configuredOrigin).origin;
+    } catch {}
+  }
+  return "http://localhost:3000";
 }
 
 function safeNext(value: string | null) {
