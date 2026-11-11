@@ -5,6 +5,8 @@ const messages: Record<string, string> = {
   email_send: "We couldn't send a confirmation link. Check the email address, wait before retrying, or contact support if this continues.",
   unconfirmed: "Your email isn't confirmed yet. Open the link sent to your college inbox, or resend it below, then sign in again.",
   domain: "That email address is not approved for the selected college.",
+  invalid_otp: "The 6-digit OTP entered is incorrect or expired. Check your college inbox or request a new OTP.",
+  otp_send: "We couldn't send a verification OTP. Check the email address, wait before retrying, or contact support.",
   setup: "LOOPEC is not connected to its authentication service yet.",
   session: "Your session has expired. Sign in again to continue.",
   expired: "That confirmation link is invalid or has expired. Request a new one.",

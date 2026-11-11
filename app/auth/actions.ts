@@ -148,6 +148,64 @@ export async function resendConfirmation(formData: FormData) {
   redirect("/auth/check-email?resent=1");
 }
 
+export async function verifyEmailOtp(formData: FormData) {
+  if (!isSupabaseConfigured()) redirect("/setup");
+
+  const emailParsed = z.email().safeParse(String(formData.get("email") ?? "").trim().toLowerCase());
+  const rawToken = String(formData.get("token") ?? formData.get("otp") ?? "").replace(/\D/g, "");
+
+  if (!emailParsed.success || rawToken.length !== 6) {
+    redirect("/auth/check-email?error=invalid_otp");
+  }
+
+  const email = emailParsed.data;
+  const token = rawToken;
+  const supabase = await createClient();
+
+  let { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "signup",
+  });
+
+  if (error) {
+    const fallback = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: "email",
+    });
+    if (fallback.error) {
+      redirect("/auth/check-email?error=invalid_otp");
+    }
+    data = fallback.data;
+  }
+
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete("loopec_pending_email");
+  } catch {
+    // Ignore cookie deletion errors
+  }
+
+  const userId = data.user?.id;
+  if (userId) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("verification_status, suspended_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profile?.suspended_at || profile?.verification_status === "suspended") {
+      redirect("/auth/suspended");
+    }
+    if (profile?.verification_status === "approved") {
+      redirect("/marketplace");
+    }
+  }
+
+  redirect("/verification");
+}
+
 export async function updatePassword(formData: FormData) {
   if (!isSupabaseConfigured()) redirect("/setup");
   const password = z.string().min(12).max(128).safeParse(formData.get("password"));
