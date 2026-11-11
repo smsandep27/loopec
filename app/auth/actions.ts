@@ -160,6 +160,16 @@ export async function verifyEmailOtp(formData: FormData) {
 
   const email = emailParsed.data;
   const token = rawToken;
+
+  // Development master OTP for frictionless local testing
+  if (process.env.NODE_ENV === "development" && (token === "123456" || token === "000000")) {
+    try {
+      const cookieStore = await cookies();
+      cookieStore.delete("loopec_pending_email");
+    } catch {}
+    redirect("/verification");
+  }
+
   const supabase = await createClient();
 
   let { data, error } = await supabase.auth.verifyOtp({
