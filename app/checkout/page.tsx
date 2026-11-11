@@ -46,7 +46,35 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
     return [id, data?.signedUrl ?? null] as const;
   }));
   const images = new Map(signed);
-  const pickupPoints = (pickupData ?? []) as Pickup[];
+  const defaultPickupPoints: Pickup[] = [
+    {
+      id: "35b88dad-65f3-4cd6-b44d-c7d2fda7711b",
+      name: "Mega Mess 1 & 2 Courtyard",
+      address: "Central Dining Complex, NIT Calicut Campus",
+      instructions: "Meet outside the main lobby entrance under the roof.",
+    },
+    {
+      id: "35b88dad-65f3-4cd6-b44d-c7d2fda7711c",
+      name: "Student Activity Centre (SAC)",
+      address: "Near Basketball Court, NIT Calicut Campus",
+      instructions: "Meet at the main reception steps.",
+    },
+    {
+      id: "35b88dad-65f3-4cd6-b44d-c7d2fda7711d",
+      name: "Central Library Entrance",
+      address: "Academic Complex, NIT Calicut Campus",
+      instructions: "Meet at the ground floor foyer near turnstiles.",
+    },
+    {
+      id: "35b88dad-65f3-4cd6-b44d-c7d2fda7711e",
+      name: "MBH (Mega Boys Hostel) Gate",
+      address: "Hostel Zone, NIT Calicut Campus",
+      instructions: "Meet at the security checkpoint gate.",
+    },
+  ];
+  const pickupPoints = ((pickupData ?? []) as Pickup[]).length > 0
+    ? ((pickupData ?? []) as Pickup[])
+    : defaultPickupPoints;
   const unavailable = lines.some((line) => {
     const product = products.get(line.product_id);
     return !product || product.status !== "approved" || product.quantity < line.quantity;
