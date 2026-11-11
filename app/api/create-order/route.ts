@@ -48,11 +48,18 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("Razorpay create-order error:", error);
+    const desc = error?.error?.description || error?.message || "Failed to create Razorpay order";
+    const isAuthError = desc.toLowerCase().includes("auth") || error?.statusCode === 401;
+
     return NextResponse.json(
       {
-        error: error?.error?.description || error?.message || "Failed to create Razorpay order",
+        error: isAuthError
+          ? "Authentication failed: Razorpay rejected your Key ID or Key Secret. Please check or regenerate your API keys in the Razorpay Dashboard (Settings > API Keys)."
+          : desc,
+        code: error?.error?.code || (isAuthError ? "AUTH_FAILED" : "ORDER_CREATION_FAILED"),
+        isAuthError,
       },
-      { status: 500 }
+      { status: isAuthError ? 401 : 500 }
     );
   }
 }
