@@ -7,6 +7,8 @@ import { requireApprovedMember } from "@/lib/auth/member";
 import { signOut } from "@/app/auth/actions";
 import { submitOrderReview, submitPaymentReference, updateOrderStatus } from "@/app/orders/actions";
 import { PayOnlineCard, PaymentReceiptCard } from "@/components/payments/pay-online-card";
+import { CampusHandoverCard } from "@/components/orders/campus-handover-card";
+import { getOrderHandoverPin } from "@/lib/orders/handover";
 import { calculateCommission } from "@/lib/payments/commission";
 
 export const instant = false;
@@ -44,7 +46,7 @@ const currency = new Intl.NumberFormat("en-IN", { style: "currency", currency: "
 export default async function OrderDetailsPage({ params, searchParams }: PageProps<"/orders/[orderId]">) {
   const [{ orderId }, paramsData] = await Promise.all([params, searchParams]);
   const errorCode = Array.isArray(paramsData.error) ? paramsData.error[0] : paramsData.error;
-  const { supabase, userId } = await requireApprovedMember();
+  const { supabase, userId, profile } = await requireApprovedMember();
   const { data: orderData } = await supabase.from("orders").select("id, buyer_id, seller_id, college_id, pickup_location_id, status, subtotal, commission_amount, total_amount, currency, buyer_confirmed_at, seller_confirmed_at, created_at").eq("id", orderId).maybeSingle();
   if (!orderData) notFound();
   const order = orderData as Order;
@@ -98,6 +100,7 @@ export default async function OrderDetailsPage({ params, searchParams }: PagePro
         <div className="mt-6 space-y-4">
           {errorMessage ? <FormNotice>{errorMessage}</FormNotice> : null}
           {paramsData.paid ? <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">⚡ Payment verified successfully! Your order is secured in campus escrow.</p> : null}
+          {paramsData.handover_verified ? <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">🎉 Campus handover verified successfully! The order is now completed and payout is released.</p> : null}
           {paramsData.updated ? <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Order status updated.</p> : null}
           {paramsData.reference_submitted ? <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Payment reference submitted for verification.</p> : null}
 
@@ -207,25 +210,19 @@ export default async function OrderDetailsPage({ params, searchParams }: PagePro
             </Link>
           ) : null}
 
-          {/* Campus Handover Confirmation */}
-          {order.status === "ready_for_pickup" ? (
-            <article className="rounded-[22px] border border-violet-200 bg-violet-50 p-5 sm:p-6">
-              <h2 className="text-sm font-semibold text-violet-950">Confirm the campus handover</h2>
-              <p className="mt-2 text-xs leading-5 text-violet-900">The order completes after both buyer and seller confirm pickup.</p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <p className="flex items-center gap-2 text-xs text-violet-950">{order.buyer_confirmed_at ? <CheckCircle2 size={15} /> : <Clock3 size={15} />} Buyer {order.buyer_confirmed_at ? "confirmed" : "confirmation pending"}</p>
-                <p className="flex items-center gap-2 text-xs text-violet-950">{order.seller_confirmed_at ? <CheckCircle2 size={15} /> : <Clock3 size={15} />} Seller {order.seller_confirmed_at ? "confirmed" : "confirmation pending"}</p>
-              </div>
-              {!ownConfirmed ? (
-                <form action={updateOrderStatus} className="mt-4">
-                  <input type="hidden" name="order_id" value={order.id} />
-                  <input type="hidden" name="next_status" value="completed" />
-                  <button className="min-h-11 rounded-full bg-violet-950 px-5 text-sm font-semibold text-white hover:bg-violet-900" type="submit">I confirm the pickup</button>
-                </form>
-              ) : !otherConfirmed ? (
-                <p className="mt-4 text-xs font-semibold text-violet-900">Your confirmation is saved. Waiting for the other participant.</p>
-              ) : null}
-            </article>
+          {/* Campus Delivery PIN & QR Handover Card */}
+          {["ready_for_pickup", "completed"].includes(order.status) ? (
+            <CampusHandoverCard
+              orderId={order.id}
+              buyerView={buyerView}
+              status={order.status}
+              handoverPin={getOrderHandoverPin(order.id)}
+              buyerConfirmedAt={order.buyer_confirmed_at}
+              sellerConfirmedAt={order.seller_confirmed_at}
+              sellerName={buyerView ? person?.full_name : profile.full_name}
+              buyerName={buyerView ? profile.full_name : person?.full_name}
+              pickupLocationName={pickup?.name ?? "Designated Campus Pickup Zone"}
+            />
           ) : null}
 
           {/* Initial Pending Actions */}

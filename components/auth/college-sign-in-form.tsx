@@ -229,59 +229,6 @@ export function CollegeSignInForm({
           <SubmitButton label="Sign in to LOOPEC" />
         </div>
       </form>
-
-      {/* Dev / Fast Demo Account Fill */}
-      {showDevHelpers && (
-        <div className="rounded-xl border border-dashed border-violet-200 bg-violet-50/50 p-3 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 font-semibold text-violet-900">
-              <Sparkles className="h-3.5 w-3.5 text-violet-600" />
-              Dev & Demo Quick Fill
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowDevPanel(!showDevPanel)}
-              className="text-violet-700 underline hover:text-violet-950"
-            >
-              {showDevPanel ? "Hide" : "Show sample logins"}
-            </button>
-          </div>
-
-          {showDevPanel && (
-            <div className="mt-3 space-y-2 border-t border-violet-200/60 pt-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-gray-600">Student Account:</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    fillDemoAccount(`student@${cleanDomain}`, "LoopecCampus#2026")
-                  }
-                  className="rounded-md bg-white px-2 py-1 font-mono text-[11px] font-medium text-violet-800 shadow-sm border border-violet-200 hover:bg-violet-100"
-                >
-                  Fill student@{cleanDomain}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-gray-600">Faculty Account:</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    fillDemoAccount(`faculty@${cleanDomain}`, "LoopecCampus#2026")
-                  }
-                  className="rounded-md bg-white px-2 py-1 font-mono text-[11px] font-medium text-violet-800 shadow-sm border border-violet-200 hover:bg-violet-100"
-                >
-                  Fill faculty@{cleanDomain}
-                </button>
-              </div>
-
-              <p className="text-[10px] text-gray-500">
-                Tip: If credentials are not pre-created in your Supabase Auth instance, use &ldquo;Create an account&rdquo; to register them first.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

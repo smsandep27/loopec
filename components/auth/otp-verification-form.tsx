@@ -219,20 +219,6 @@ export function OtpVerificationForm({ initialEmail }: OtpVerificationFormProps) 
           <p className="mt-3 text-center text-xs text-gray-500">
             Check your NITC inbox or spam folder for the 6-digit code.
           </p>
-
-          {/* Dev Mode Quick Bypass Helper */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="mt-3 flex items-center justify-center gap-2">
-              <span className="text-xs text-amber-700 font-medium">🧪 Dev Test OTP:</span>
-              <button
-                type="button"
-                onClick={() => setDigits(["1", "2", "3", "4", "5", "6"])}
-                className="inline-flex items-center gap-1 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 font-mono text-xs font-bold text-amber-900 hover:bg-amber-200 transition"
-              >
-                Auto-fill 123456
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Submit Button */}

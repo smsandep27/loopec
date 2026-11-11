@@ -28,6 +28,8 @@ const messages: Record<string, string> = {
   withdraw: "We could not remove this live listing. Check whether it has an open order and try again.",
   checkout: "Checkout could not be completed. Review your cart, stock and pickup point, then try again.",
   transition: "That order could not be updated. Its status may have changed; refresh and review it.",
+  invalid_pin: "Please enter a valid 4-digit handover PIN.",
+  incorrect_pin: "The handover PIN entered does not match this order. Please verify with the buyer and try again.",
   payment_reference: "Enter a valid payment reference after the seller accepts the order.",
   payment: "That payment reference could not be recorded. Check the details and try again.",
   payment_review: "We could not update the payment review. Refresh the queue and try again.",

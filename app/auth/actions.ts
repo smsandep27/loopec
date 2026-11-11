@@ -56,7 +56,7 @@ export async function signUp(formData: FormData) {
     redirect("/auth/sign-up?error=domain");
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data: authData, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -65,6 +65,12 @@ export async function signUp(formData: FormData) {
     },
   });
   if (error) redirect("/auth/sign-up?error=sign_up");
+
+  // If session was immediately created (e.g. email confirmation disabled), go straight to campus portal!
+  if (authData?.session) {
+    redirect("/verification");
+  }
+
   (await cookies()).set("loopec_pending_email", email, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/auth/check-email", maxAge: 15 * 60 });
   redirect("/auth/check-email");
 }

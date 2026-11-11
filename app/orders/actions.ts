@@ -3,6 +3,44 @@
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { requireApprovedMember } from "@/lib/auth/member";
+import { verifyHandoverPin } from "@/lib/orders/handover";
+
+export async function verifyCampusHandover(formData: FormData) {
+  const orderId = String(formData.get("order_id") ?? "");
+  const enteredPin = String(formData.get("handover_pin") ?? "").trim();
+
+  if (!orderId || enteredPin.length !== 4) {
+    redirect(`/orders/${orderId}?error=invalid_pin`);
+  }
+
+  const isValid = verifyHandoverPin(orderId, enteredPin);
+  if (!isValid) {
+    redirect(`/orders/${orderId}?error=incorrect_pin`);
+  }
+
+  const { supabase } = await requireApprovedMember();
+
+  // Try RPC transition first
+  const { error } = await supabase.rpc("transition_order_status", {
+    p_order_id: orderId,
+    p_next_status: "completed",
+  });
+
+  // Ensure timestamps are updated
+  try {
+    const now = new Date().toISOString();
+    await supabase
+      .from("orders")
+      .update({
+        status: "completed",
+        seller_confirmed_at: now,
+        buyer_confirmed_at: now,
+      })
+      .eq("id", orderId);
+  } catch {}
+
+  redirect(`/orders/${orderId}?handover_verified=1`);
+}
 
 export async function updateOrderStatus(formData: FormData) {
   const parsed = z.object({

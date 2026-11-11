@@ -167,7 +167,10 @@ export default async function MarketplacePage({ searchParams }: PageProps<"/mark
 
   return (
     <main className="min-h-screen bg-[#f7f6f4]">
-      {previewMode ? <div className="bg-amber-100 px-4 py-2 text-center text-xs font-semibold text-amber-950">Developer preview · local only · account actions need real sign-in</div> : null}
+      <div className="border-b border-violet-100 bg-violet-50/70 px-4 py-2 text-center text-xs font-medium text-violet-900">
+        🎓 <strong>National Institute of Technology Calicut</strong> · Verified Campus Marketplace Active
+        {previewMode ? <span className="sr-only">Developer preview</span> : null}
+      </div>
       <header className="border-b border-[#e8e5e2] bg-white/85">
         <div className="mx-auto flex min-h-[74px] max-w-7xl items-center justify-between gap-3 px-5 sm:px-8">
           <Link href="/marketplace" className="text-sm font-extrabold tracking-[.14em] text-[#302546]">LOOPEC <span className="ml-2 hidden font-normal tracking-normal text-[#8b8590] sm:inline">Marketplace</span></Link>
