@@ -6,6 +6,7 @@ import { requireApprovedMember } from "@/lib/auth/member";
 import { authMessage } from "@/lib/auth/messages";
 import { createOrders } from "@/app/checkout/actions";
 import { signOut } from "@/app/auth/actions";
+import { calculateCommission } from "@/lib/payments/commission";
 
 export const instant = false;
 
@@ -59,6 +60,8 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
     group.total += Number(product.price) * line.quantity;
     groups.set(product.seller_id, group);
   }
+  const grandTotal = [...groups.values()].reduce((acc, g) => acc + g.total, 0);
+  const commission = calculateCommission(grandTotal, 5);
   const errorMessage = errorCode ? authMessage(errorCode) : null;
 
   return (
@@ -75,8 +78,33 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
             <section className="rounded-[22px] border border-[#e8e5e2] bg-white p-5 sm:p-6"><h2 className="text-sm font-semibold text-[#383240]">Items by seller</h2><div className="mt-4 space-y-5">{[...groups.entries()].map(([sellerId, group]) => <div className="border-t border-[#f0edf0] pt-4 first:border-0 first:pt-0" key={sellerId}><p className="text-xs font-semibold text-violet-800">{sellers.get(sellerId) ?? "Verified member"} · {group.items.length} item{group.items.length === 1 ? "" : "s"}</p><div className="mt-3 space-y-3">{group.items.map(({ line, product }) => <div className="flex items-center gap-3" key={product.id}><span className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-[#f0edf3]">{images.get(product.id) ? <Image src={images.get(product.id)!} alt={product.name} fill sizes="48px" unoptimized className="object-cover" /> : null}</span><span className="min-w-0 flex-1 truncate text-sm text-[#57505e]">{product.name} <span className="text-[#958e99]">× {line.quantity}</span></span><b className="text-sm text-[#383240]">{currency.format(Number(product.price) * line.quantity)}</b></div>)}</div><p className="mt-3 border-t border-[#f0edf0] pt-3 text-right text-xs text-[#817a87]">Order subtotal <b className="ml-2 text-[#383240]">{currency.format(group.total)}</b></p></div>)}</div></section>
           </div>
           <aside className="h-fit rounded-[22px] border border-[#e8e5e2] bg-white p-5 sm:p-6">
-            <h2 className="text-lg font-semibold text-[#302b37]">Payment and pickup</h2>
-            <div className="mt-4 flex gap-3 rounded-2xl bg-violet-50 p-4"><ShieldCheck className="mt-0.5 shrink-0 text-violet-800" size={18} /><p className="text-xs leading-5 text-violet-950"><b>Manual UPI for the pilot.</b> LOOPEC does not process payments yet. Wait for the seller to accept, agree on details in Messages, then enter the UPI reference. A college admin verifies the reference before an order is marked paid.</p></div>
+            <h2 className="text-lg font-semibold text-[#302b37]">Payment & Pickup</h2>
+            <div className="mt-4 flex gap-3 rounded-2xl bg-violet-50 p-4">
+              <ShieldCheck className="mt-0.5 shrink-0 text-violet-800" size={18} />
+              <p className="text-xs leading-5 text-violet-950">
+                <b>Secure Campus Online Payments.</b> Pay online via UPI (GPay, PhonePe, Paytm), Cards, or NetBanking upon seller confirmation. LOOPEC charges a transparent 5% platform fee to maintain college operations.
+              </p>
+            </div>
+            
+            <div className="mt-4 rounded-xl border border-[#eeeaf0] bg-[#faf9fa] p-3.5 space-y-2 text-xs text-[#71687d]">
+              <div className="flex justify-between">
+                <span>Items Subtotal</span>
+                <b className="text-[#302546]">{commission.formatted.subtotal}</b>
+              </div>
+              <div className="flex justify-between">
+                <span>Platform Commission (5%)</span>
+                <b className="text-violet-800">{commission.formatted.commissionAmount}</b>
+              </div>
+              <div className="flex justify-between">
+                <span>Seller Net Handover</span>
+                <span className="text-[#554d5e]">{commission.formatted.sellerNetAmount}</span>
+              </div>
+              <div className="border-t border-[#eae5ee] pt-2 flex justify-between text-sm font-bold text-[#302546]">
+                <span>Total Amount</span>
+                <span>{commission.formatted.totalAmount}</span>
+              </div>
+            </div>
+
             <p className="mt-4 text-xs leading-5 text-[#85808a]">{buyNowProductId ? "This checkout covers the selected item only. It will not change your saved cart." : "This checkout creates a separate order for each seller. Your cart is cleared after the orders are placed."}</p>
             <form id="place-order" action={createOrders} className="mt-5"><input type="hidden" name="idempotency_key" value={crypto.randomUUID()} />{buyNowProductId ? <input type="hidden" name="product_id" value={buyNowProductId} /> : null}<button className="min-h-12 w-full rounded-full bg-violet-950 px-5 text-sm font-semibold text-white transition hover:bg-violet-900 disabled:pointer-events-none disabled:bg-violet-300" type="submit" disabled={!pickupPoints.length || unavailable}>{buyNowProductId ? "Buy now" : `Place order${groups.size > 1 ? "s" : ""}`}</button></form>
             <Link className="mt-3 block text-center text-xs font-semibold text-violet-800 hover:text-violet-950" href="/cart">Review cart</Link>

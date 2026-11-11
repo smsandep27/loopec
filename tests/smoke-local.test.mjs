@@ -97,3 +97,15 @@ test("offline fallback and PWA image assets are served", async () => {
     assert.match(response.headers.get("content-type") || "", /image\/png/);
   }
 });
+
+test("razorpay webhook endpoint is reachable and handles requests securely", async () => {
+  const response = await fetch(new URL("/api/webhooks/razorpay", baseUrl), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ event: "ping" }),
+  });
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.status, "ok");
+});
+
