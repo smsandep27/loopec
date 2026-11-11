@@ -408,6 +408,7 @@ where id = 'product-images';
 -- ------------------------------------------------------------------------------
 -- 5. ONLINE PAYMENTS & 5% COMMISSION CONFIRMATION (20261111000000)
 -- ------------------------------------------------------------------------------
+alter table public.profiles add column if not exists upi_id text;
 create or replace function public.confirm_online_payment(
   p_order_id uuid,
   p_provider text,

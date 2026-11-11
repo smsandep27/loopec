@@ -17,6 +17,7 @@ export type MemberProfile = {
     | "rejected"
     | "suspended";
   suspended_at: string | null;
+  upi_id?: string | null;
 };
 
 export async function getCurrentMember() {
@@ -41,7 +42,7 @@ export async function getCurrentMember() {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, handle, phone, bio, college_id, role, verification_status, suspended_at")
+    .select("id, full_name, handle, phone, bio, college_id, role, verification_status, suspended_at, upi_id")
     .eq("id", userId)
     .maybeSingle();
 
@@ -66,6 +67,7 @@ export async function requireApprovedMember() {
       role: "student",
       verification_status: "approved",
       suspended_at: null,
+      upi_id: "developer@upi",
     };
     return { supabase, userId, profile };
   }

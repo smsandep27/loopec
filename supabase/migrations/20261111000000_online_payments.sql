@@ -2,6 +2,8 @@
 -- Supports Razorpay, Cards, NetBanking, Instant UPI, and Campus Sandbox.
 -- Automatically credits 5% platform commission to LOOPEC and 95% net to seller.
 
+alter table public.profiles add column if not exists upi_id text;
+
 create or replace function public.confirm_online_payment(
   p_order_id uuid,
   p_provider text,

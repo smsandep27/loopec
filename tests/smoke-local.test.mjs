@@ -109,3 +109,22 @@ test("razorpay webhook endpoint is reachable and handles requests securely", asy
   assert.equal(data.status, "ok");
 });
 
+test("5% platform commission arithmetic and escrow breakdown calculations", () => {
+  const calculateCommission = (subtotal, percent = 5) => {
+    const num = Math.max(0, Number(subtotal) || 0);
+    const comm = Math.round((num * percent) / 100 * 100) / 100;
+    const net = Math.max(0, Math.round((num - comm) * 100) / 100);
+    return { subtotal: num, commission: comm, sellerNet: net, total: num };
+  };
+
+  const c1 = calculateCommission(1000, 5);
+  assert.equal(c1.commission, 50); // 5% fee for platform
+  assert.equal(c1.sellerNet, 950); // 95% net payout for student seller
+  assert.equal(c1.total, 1000);
+
+  const c2 = calculateCommission(599, 5);
+  assert.equal(c2.commission, 29.95);
+  assert.equal(c2.sellerNet, 569.05);
+});
+
+

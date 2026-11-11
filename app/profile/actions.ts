@@ -12,11 +12,13 @@ export async function updateProfile(formData: FormData) {
     handle: z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9-]{2,31}$/),
     phone: z.string().trim().max(30),
     bio: z.string().trim().max(500),
+    upiId: z.string().trim().max(50).optional(),
   }).safeParse({
     fullName: formData.get("full_name"),
     handle: formData.get("handle"),
     phone: formData.get("phone") ?? "",
     bio: formData.get("bio") ?? "",
+    upiId: formData.get("upi_id") ?? "",
   });
   if (!parsed.success) redirect("/profile?error=invalid");
 
@@ -32,6 +34,7 @@ export async function updateProfile(formData: FormData) {
       handle: parsed.data.handle,
       phone: parsed.data.phone || null,
       bio: parsed.data.bio || null,
+      upi_id: parsed.data.upiId || null,
     })
     .eq("id", member.userId);
 

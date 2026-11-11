@@ -45,6 +45,20 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
           <label className={labelClassName}>Full name<input className={inputClassName} name="full_name" autoComplete="name" minLength={2} maxLength={120} required defaultValue={member.profile.full_name} /></label>
           <label className={labelClassName}>Member handle<input className={inputClassName} name="handle" autoComplete="username" minLength={3} maxLength={32} pattern="[a-z0-9][a-z0-9-]{2,31}" required defaultValue={member.profile.handle} /><span className="mt-1.5 block text-xs font-normal text-[#87818c]">Lowercase letters, numbers and hyphens.</span></label>
           <label className={labelClassName}>Phone number <span className="font-normal text-[#918b96]">(optional)</span><input className={inputClassName} name="phone" type="tel" autoComplete="tel" maxLength={30} defaultValue={member.profile.phone ?? ""} /></label>
+          <label className={labelClassName}>
+            Seller Payout UPI ID <span className="font-normal text-[#918b96]">(for receiving your 95% sales money)</span>
+            <input
+              className={inputClassName}
+              name="upi_id"
+              type="text"
+              placeholder="e.g. 9876543210@paytm or yourname@oksbi"
+              maxLength={50}
+              defaultValue={member.profile.upi_id ?? ""}
+            />
+            <span className="mt-1.5 block text-xs font-normal text-[#87818c]">
+              Your 95% sales proceeds will be disbursed to this UPI ID upon campus pickup handover.
+            </span>
+          </label>
           <label className={labelClassName}>About you <span className="font-normal text-[#918b96]">(optional)</span><textarea className={`${inputClassName} min-h-28 resize-y py-3`} name="bio" maxLength={500} defaultValue={member.profile.bio ?? ""} /></label>
           <Button className="w-full" size="lg" type="submit">Save profile</Button>
         </form>

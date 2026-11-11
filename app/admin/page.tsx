@@ -82,6 +82,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       <header className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <Link href="/" className="text-sm font-extrabold tracking-[.14em] text-[#302546]">LOOPEC <span className="font-normal tracking-normal text-[#8b8590]">Admin</span></Link>
         <div className="flex items-center gap-3">
+          <Link href="/admin/payouts" className="rounded-full border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-semibold text-violet-900 hover:bg-violet-100">Payouts & 5% Fee</Link>
           <Link href="/admin/listings" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Listing moderation</Link>
           <Link href="/admin/orders" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Order review</Link>
           <Link href="/admin/members" className="rounded-full border border-[#e4e0e8] bg-white px-4 py-2.5 text-sm font-semibold text-[#514a5b] hover:border-violet-300">Member access</Link>
