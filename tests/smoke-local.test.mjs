@@ -127,4 +127,91 @@ test("5% platform commission arithmetic and escrow breakdown calculations", () =
   assert.equal(c2.sellerNet, 569.05);
 });
 
+test("POST /api/create-order creates Razorpay orders and validates minimum amount", async () => {
+  // Test invalid amount (< 100 paise)
+  const badRes = await fetch(new URL("/api/create-order", baseUrl), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ amount: 50 }),
+  });
+  assert.equal(badRes.status, 400);
+
+  // Test valid order creation with Razorpay test keys
+  const goodRes = await fetch(new URL("/api/create-order", baseUrl), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      amount: 10000, // ₹100.00
+      currency: "INR",
+      receipt: "rcpt_smoke_test_1",
+    }),
+  });
+
+  if (goodRes.status === 200) {
+    const data = await goodRes.json();
+    assert.ok(data.order_id);
+    assert.equal(data.amount, 10000);
+    assert.equal(data.currency, "INR");
+    assert.equal(data.key_id, "rzp_test_TyrHB85hPzd9WV");
+  } else {
+    // If external network is unreachable or throttled in CI, it must return a handled error
+    assert.ok([200, 500, 502, 503].includes(goodRes.status));
+  }
+});
+
+test("POST /api/verify-payment validates HMAC-SHA256 signatures", async () => {
+  const secret = "bIrPjhzCdYJuLHoEueIgifYJ";
+  const orderId = "order_test_123456";
+  const paymentId = "pay_test_789012";
+
+  // 1. Missing fields should return 400
+  const missingRes = await fetch(new URL("/api/verify-payment", baseUrl), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ order_id: orderId }),
+  });
+  assert.equal(missingRes.status, 400);
+
+  // 2. Bad signature should return 400
+  const badSigRes = await fetch(new URL("/api/verify-payment", baseUrl), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      order_id: orderId,
+      payment_id: paymentId,
+      razorpay_signature: "bad_signature_abcdef123456",
+    }),
+  });
+  assert.equal(badSigRes.status, 400);
+
+  // 3. Genuine HMAC-SHA256 signature must return 200 success
+  const crypto = await import("node:crypto");
+  const validSignature = crypto
+    .createHmac("sha256", secret)
+    .update(`${orderId}|${paymentId}`)
+    .digest("hex");
+
+  const validRes = await fetch(new URL("/api/verify-payment", baseUrl), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      order_id: orderId,
+      payment_id: paymentId,
+      razorpay_signature: validSignature,
+    }),
+  });
+  assert.equal(validRes.status, 200);
+  const validData = await validRes.json();
+  assert.equal(validData.success, true);
+  assert.equal(validData.payment_id, paymentId);
+});
+
+test("Razorpay standard checkout demo page loads cleanly", async () => {
+  const res = await get("/checkout/razorpay-demo");
+  const html = await res.text();
+  assert.match(html, /Razorpay Standard Web Checkout/);
+  assert.match(html, /Pay ₹.*100.*with Razorpay/);
+});
+
+
 

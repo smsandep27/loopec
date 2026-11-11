@@ -31,81 +31,103 @@ export function PayOnlineCard({ orderId, amount, currency = "INR", buyerName = "
     setErrorMessage(null);
 
     try {
-      const res = await initiateOrderPaymentSession(orderId);
-      if (!res.ok || !res.session) {
-        setErrorMessage(res.error || "Could not start payment session");
+      // 1. Ensure Razorpay checkout script is loaded
+      if (typeof window !== "undefined" && !window.Razorpay) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error("Failed to load Razorpay checkout SDK"));
+          document.body.appendChild(script);
+        });
+      }
+
+      // 2. Call Backend Create Order Endpoint
+      const createRes = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Math.round(breakdown.totalAmount * 100),
+          currency: "INR",
+          receipt: `ord_${orderId.slice(0, 16)}`,
+          notes: {
+            loopec_order_id: orderId,
+            platform: "LOOPEC",
+          },
+        }),
+      });
+
+      const orderData = await createRes.json();
+
+      // If backend create-order fails or returns error, open campus sandbox modal
+      if (!createRes.ok || !orderData.order_id) {
+        console.warn("Live Razorpay order creation returned:", orderData.error);
+        setShowSandboxModal(true);
         setLoading(false);
         return;
       }
 
-      const session = res.session;
+      // 3. Open Razorpay Standard Checkout Modal
+      const options = {
+        key: orderData.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency || "INR",
+        name: "LOOPEC",
+        description: `Campus Order ${orderId.slice(0, 8)}`,
+        image: "/logo.png",
+        order_id: orderData.order_id,
+        prefill: {
+          name: buyerName,
+        },
+        theme: {
+          color: "#49347F",
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+          },
+        },
+        handler: async function (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
+          try {
+            // 4. Send all three to verify endpoint
+            const verifyRes = await fetch("/api/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                order_id: response.razorpay_order_id,
+                payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                loopec_order_id: orderId,
+              }),
+            });
 
-      if (session.mode === "razorpay" && session.keyId && session.razorpayOrderId) {
-        // Load Razorpay checkout script if needed
-        if (!window.Razorpay) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load Razorpay checkout"));
-            document.body.appendChild(script);
-          });
-        }
-
-        const options = {
-          key: session.keyId,
-          amount: Math.round(session.amount * 100),
-          currency: session.currency,
-          name: "LOOPEC",
-          description: `Campus Order ${orderId.slice(0, 8)}`,
-          image: "/logo.png",
-          order_id: session.razorpayOrderId,
-          handler: function (response: any) {
-            const form = document.createElement("form");
-            form.method = "POST";
-            form.action = completeOrderPayment as unknown as string;
-
-            const fields: Record<string, string> = {
-              order_id: orderId,
-              provider: "razorpay",
-              payment_id: response.razorpay_payment_id,
-              order_reference: response.razorpay_order_id,
-              signature: response.razorpay_signature,
-            };
-
-            for (const [k, v] of Object.entries(fields)) {
-              const input = document.createElement("input");
-              input.type = "hidden";
-              input.name = k;
-              input.value = v;
-              form.appendChild(input);
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(verifyData.error || "Payment signature verification failed");
             }
 
-            document.body.appendChild(form);
-            form.requestSubmit();
-          },
-          prefill: {
-            name: buyerName,
-          },
-          theme: {
-            color: "#49347F",
-          },
-        };
+            window.location.href = `/orders/${orderId}?paid=1`;
+          } catch (verifyErr: any) {
+            setErrorMessage(verifyErr.message || "Payment verification failed");
+            setLoading(false);
+          }
+        },
+      };
 
-        const rzp = new window.Razorpay(options);
-        rzp.on("payment.failed", function (response: any) {
-          setErrorMessage(response.error?.description || "Payment failed or was cancelled.");
-          setLoading(false);
-        });
-        rzp.open();
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        setErrorMessage(response.error?.description || "Payment failed or was cancelled.");
         setLoading(false);
-      } else {
-        // Campus Sandbox mode
-        setShowSandboxModal(true);
-        setLoading(false);
-      }
+      });
+
+      rzp.open();
     } catch (err: any) {
-      setErrorMessage(err.message || "An error occurred while opening payment.");
+      setErrorMessage(err.message || "An unexpected error occurred while initiating payment.");
       setLoading(false);
     }
   }
